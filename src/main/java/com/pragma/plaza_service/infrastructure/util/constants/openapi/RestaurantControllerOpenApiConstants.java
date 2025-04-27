@@ -4,6 +4,7 @@ public class RestaurantControllerOpenApiConstants {
 
     public RestaurantControllerOpenApiConstants(){}
 
+    public static final String RESTAURANT_TAG = "Restaurant";
     public static final String RESTAURANT_CREATE_SUMMARY = "Create a restaurant";
     public static final String RESTAURANT_CREATE_DESCRIPTION = "This endpoint allows you to create a new restaurant.";
     public static final String RESTAURANT_CREATE_RESPONSE_DESCRIPTION = "Restaurant created successfully.";
