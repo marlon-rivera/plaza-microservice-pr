@@ -5,6 +5,8 @@ import com.pragma.plaza_service.infrastructure.out.jpa.entity.DishEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.Optional;
+
 @Mapper(
         componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.IGNORE
@@ -12,5 +14,11 @@ import org.mapstruct.ReportingPolicy;
 public interface IDishEntityMapper {
 
     DishEntity toDishEntity(Dish dish);
+
+    Dish toDish(DishEntity dishEntity);
+
+    default Optional<Dish> toOptionalDish(Optional<DishEntity> dishEntity) {
+        return dishEntity.map(this::toDish);
+    }
 
 }
