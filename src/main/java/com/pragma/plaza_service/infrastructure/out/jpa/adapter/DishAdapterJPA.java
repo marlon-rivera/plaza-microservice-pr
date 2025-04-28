@@ -6,6 +6,8 @@ import com.pragma.plaza_service.infrastructure.out.jpa.mapper.IDishEntityMapper;
 import com.pragma.plaza_service.infrastructure.out.jpa.repository.IDishRepository;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 public class DishAdapterJPA implements IDishPersistencePort {
 
@@ -16,6 +18,20 @@ public class DishAdapterJPA implements IDishPersistencePort {
     public void createDish(Dish dish) {
         dishRepository.save(
                 dishEntityMapper.toDishEntity(dish)
+        );
+    }
+
+    @Override
+    public void modifyDish(Dish dish) {
+        dishRepository.save(
+                dishEntityMapper.toDishEntity(dish)
+        );
+    }
+
+    @Override
+    public Optional<Dish> findById(Long id) {
+        return dishEntityMapper.toOptionalDish(
+                dishRepository.findById(id)
         );
     }
 }

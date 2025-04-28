@@ -276,4 +276,22 @@ class DishValidatorTest {
         assertEquals(DishValidatorConstants.RESTAURANT_REQUIRED, exception.getMessage());
     }
 
+    @Test
+    @DisplayName("Must not throw exception when the dish is valid for edit")
+    void validateEditDish_withValidDish_shouldNotThrowException() {
+        // Arrange
+        Dish dish = Dish.builder()
+                .name("Pizza Editada")
+                .description("Deliciosa pizza editada")
+                .price(new BigDecimal("17.99"))
+                .imageUrl("http://example.com/new-image.jpg")
+                .category(
+                        new DishCategory(1L, "Pizza", "Deliciosa pizza")
+                )
+                .build();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> DishValidator.validateEditDish(dish));
+    }
+
 }

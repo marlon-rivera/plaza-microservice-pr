@@ -2,6 +2,7 @@ package com.pragma.plaza_service.domain.usecase;
 
 import com.pragma.plaza_service.domain.api.IDishServicePort;
 import com.pragma.plaza_service.domain.exception.ResourceConflictException;
+import com.pragma.plaza_service.domain.exception.ResourceNotFoundException;
 import com.pragma.plaza_service.domain.model.Dish;
 import com.pragma.plaza_service.domain.model.DishCategory;
 import com.pragma.plaza_service.domain.spi.IDishCategoryPersistencePort;
@@ -10,6 +11,7 @@ import com.pragma.plaza_service.domain.util.constants.DishUseCaseConstants;
 import com.pragma.plaza_service.domain.util.validators.DishValidator;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -28,5 +30,22 @@ public class DishUseCase implements IDishServicePort {
         DishValidator.validateDish(dish);
         dish.setActive(true);
         dishPersistencePort.createDish(dish);
+    }
+
+    @Override
+    public void modifyDish(Long id, String description, BigDecimal price) {
+        Optional<Dish> dishOptional = dishPersistencePort.findById(id);
+        if(dishOptional.isEmpty()){
+            throw new ResourceNotFoundException(DishUseCaseConstants.DISH_NOT_FOUND);
+        }
+        Dish dish = dishOptional.get();
+        if (description != null && !description.isEmpty() && !description.equals(dish.getDescription())) {
+            dish.setDescription(description);
+        }
+        if (price != null && price.compareTo(BigDecimal.ZERO) > 0 && !price.equals(dish.getPrice())) {
+            dish.setPrice(price);
+        }
+        DishValidator.validateEditDish(dish);
+        dishPersistencePort.modifyDish(dish);
     }
 }

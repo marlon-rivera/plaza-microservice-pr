@@ -1,6 +1,7 @@
 package com.pragma.plaza_service.infrastructure.input.rest;
 
 import com.pragma.plaza_service.application.dto.request.DishCreateDto;
+import com.pragma.plaza_service.application.dto.request.DishEditDto;
 import com.pragma.plaza_service.application.handler.IDishHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -38,6 +41,26 @@ class DishControllerTest {
         // Assert
         verify(dishHandler, times(1)).createDish(dishCreateDto);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void modifyDish_ShouldReturnOkStatus() {
+        // Arrange
+        Long dishId = 1L;
+        String description = "New Description";
+        BigDecimal price = new BigDecimal("10.00");
+        DishEditDto dishEditDto = new DishEditDto();
+        dishEditDto.setDescription(description);
+        dishEditDto.setPrice(price);
+        doNothing().when(dishHandler).modifyDish(dishEditDto, dishId);
+
+        // Act
+        ResponseEntity<Void> response = dishController.editDish(dishId, dishEditDto);
+
+        // Assert
+        verify(dishHandler, times(1)).modifyDish(dishEditDto, dishId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNull(response.getBody());
     }
 }

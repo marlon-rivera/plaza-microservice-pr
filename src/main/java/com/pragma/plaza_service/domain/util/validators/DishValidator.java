@@ -16,6 +16,11 @@ public class DishValidator {
         validateRestaurantAssociation(dish);
     }
 
+    public static void validateEditDish(Dish dish) {
+        validateRequiredFields(dish);
+        validatePrice(dish.getPrice());
+    }
+
     private static void validateRequiredFields(Dish dish) {
         if (dish.getName() == null || dish.getName().trim().isEmpty()) {
             throw new InvalidDataException(DishValidatorConstants.NAME_REQUIRED);
