@@ -69,4 +69,16 @@ class RestaurantAdapterJPATest {
         verify(restaurantRepository, times(1)).existsByNit(nit);
     }
 
+    @Test
+    void findOwnerIdByRestaurantId_ShouldReturnOwnerId_WhenRestaurantExists() {
+        Long restaurantId = 1L;
+        Long expectedOwnerId = 2L;
+        when(restaurantRepository.findOwnerIdById(restaurantId)).thenReturn(expectedOwnerId);
+
+        Long result = restaurantAdapterJPA.findOwnerIdByRestaurantId(restaurantId);
+
+        assertEquals(expectedOwnerId, result);
+        verify(restaurantRepository, times(1)).findOwnerIdById(restaurantId);
+    }
+
 }

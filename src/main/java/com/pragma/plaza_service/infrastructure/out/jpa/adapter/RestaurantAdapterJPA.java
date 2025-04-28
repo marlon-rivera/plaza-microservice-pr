@@ -21,4 +21,9 @@ public class RestaurantAdapterJPA implements IRestaurantPersistencePort {
     public boolean existsByNit(String nit) {
         return restaurantRepository.existsByNit(nit);
     }
+
+    @Override
+    public Long findOwnerIdByRestaurantId(Long restaurantId) {
+        return restaurantRepository.findOwnerIdById(restaurantId);
+    }
 }

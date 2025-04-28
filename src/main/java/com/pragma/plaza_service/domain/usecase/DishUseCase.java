@@ -1,12 +1,15 @@
 package com.pragma.plaza_service.domain.usecase;
 
 import com.pragma.plaza_service.domain.api.IDishServicePort;
+import com.pragma.plaza_service.domain.exception.InvalidDataException;
 import com.pragma.plaza_service.domain.exception.ResourceConflictException;
 import com.pragma.plaza_service.domain.exception.ResourceNotFoundException;
 import com.pragma.plaza_service.domain.model.Dish;
 import com.pragma.plaza_service.domain.model.DishCategory;
+import com.pragma.plaza_service.domain.spi.IAutthenticatePort;
 import com.pragma.plaza_service.domain.spi.IDishCategoryPersistencePort;
 import com.pragma.plaza_service.domain.spi.IDishPersistencePort;
+import com.pragma.plaza_service.domain.spi.IRestaurantPersistencePort;
 import com.pragma.plaza_service.domain.util.constants.DishUseCaseConstants;
 import com.pragma.plaza_service.domain.util.validators.DishValidator;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +22,12 @@ public class DishUseCase implements IDishServicePort {
 
     private final IDishPersistencePort dishPersistencePort;
     private final IDishCategoryPersistencePort dishCategoryPersistencePort;
+    private final IRestaurantPersistencePort restaurantPersistencePort;
+    private final IAutthenticatePort authenticatePort;
 
     @Override
     public void createDish(Dish dish, String dishCategoryName) {
+        validateRestaurantOwner(dish.getRestaurantId());
         Optional<DishCategory> dishCategoryOptional = dishCategoryPersistencePort.findByName(dishCategoryName);
         if(dishCategoryOptional.isEmpty()) {
             throw new ResourceConflictException(DishUseCaseConstants.DISH_CATEGORY_NOT_FOUND);
@@ -39,6 +45,7 @@ public class DishUseCase implements IDishServicePort {
             throw new ResourceNotFoundException(DishUseCaseConstants.DISH_NOT_FOUND);
         }
         Dish dish = dishOptional.get();
+        validateRestaurantOwner(dish.getRestaurantId());
         if (description != null && !description.isEmpty() && !description.equals(dish.getDescription())) {
             dish.setDescription(description);
         }
@@ -47,5 +54,13 @@ public class DishUseCase implements IDishServicePort {
         }
         DishValidator.validateEditDish(dish);
         dishPersistencePort.modifyDish(dish);
+    }
+
+    private void validateRestaurantOwner(Long restaurantId) {
+        Long userId = authenticatePort.getCurrentUserId();
+        Long restaurantOwnerId = restaurantPersistencePort.findOwnerIdByRestaurantId(restaurantId);
+        if (!userId.equals(restaurantOwnerId)) {
+            throw new InvalidDataException(DishUseCaseConstants.DIFFERENT_OWNER);
+        }
     }
 }
