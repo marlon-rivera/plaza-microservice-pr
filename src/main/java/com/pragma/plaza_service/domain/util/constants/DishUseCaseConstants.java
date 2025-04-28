@@ -6,5 +6,6 @@ public class DishUseCaseConstants {
 
     public static final String DISH_CATEGORY_NOT_FOUND = "Dish category not found";
     public static final String DISH_NOT_FOUND = "Dish not found";
+    public static final String DIFFERENT_OWNER = "The dish does not belong to the restaurant owner";
 
 }

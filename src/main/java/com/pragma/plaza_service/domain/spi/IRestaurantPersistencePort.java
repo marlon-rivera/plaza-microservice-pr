@@ -6,5 +6,6 @@ public interface IRestaurantPersistencePort {
 
     void saveRestaurant(Restaurant restaurant);
     boolean existsByNit(String nit);
+    Long findOwnerIdByRestaurantId(Long restaurantId);
 
 }
