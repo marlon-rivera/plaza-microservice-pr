@@ -1,10 +1,13 @@
 package com.pragma.plaza_service.domain.usecase;
+import com.pragma.plaza_service.domain.exception.InvalidDataException;
 import com.pragma.plaza_service.domain.exception.ResourceConflictException;
 import com.pragma.plaza_service.domain.exception.ResourceNotFoundException;
 import com.pragma.plaza_service.domain.model.Dish;
 import com.pragma.plaza_service.domain.model.DishCategory;
+import com.pragma.plaza_service.domain.spi.IAutthenticatePort;
 import com.pragma.plaza_service.domain.spi.IDishCategoryPersistencePort;
 import com.pragma.plaza_service.domain.spi.IDishPersistencePort;
+import com.pragma.plaza_service.domain.spi.IRestaurantPersistencePort;
 import com.pragma.plaza_service.domain.util.constants.DishUseCaseConstants;
 import com.pragma.plaza_service.domain.util.validators.DishValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +33,13 @@ class DishUseCaseTest {
     private IDishPersistencePort dishPersistencePort;
 
     @Mock
+    private IAutthenticatePort authenticatePort;
+
+    @Mock
     private IDishCategoryPersistencePort dishCategoryPersistencePort;
+
+    @Mock
+    private IRestaurantPersistencePort restaurantPersistencePort;
 
     @InjectMocks
     private DishUseCase dishUseCase;
@@ -57,7 +66,8 @@ class DishUseCaseTest {
     void createDish_WhenCategoryExists_ThenCreatesDishSuccessfully() {
         // Arrange
         when(dishCategoryPersistencePort.findByName(categoryName)).thenReturn(Optional.of(dishCategory));
-
+        when(authenticatePort.getCurrentUserId()).thenReturn(1L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
         try (MockedStatic<DishValidator> validator = Mockito.mockStatic(DishValidator.class)) {
             // Act
             dishUseCase.createDish(dish, categoryName);
@@ -74,7 +84,8 @@ class DishUseCaseTest {
     void createDish_WhenCategoryDoesNotExist_ThenThrowsException() {
         // Arrange
         when(dishCategoryPersistencePort.findByName(categoryName)).thenReturn(Optional.empty());
-
+        when(authenticatePort.getCurrentUserId()).thenReturn(1L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
         // Act & Assert
         ResourceConflictException exception = assertThrows(ResourceConflictException.class,
                 () -> dishUseCase.createDish(dish, categoryName));
@@ -87,7 +98,8 @@ class DishUseCaseTest {
     void createDish_WhenCategoryExists_ThenSetsActiveToTrue() {
         // Arrange
         when(dishCategoryPersistencePort.findByName(categoryName)).thenReturn(Optional.of(dishCategory));
-
+        when(authenticatePort.getCurrentUserId()).thenReturn(1L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
         try (MockedStatic<DishValidator> validator = Mockito.mockStatic(DishValidator.class)) {
             // Act
             dishUseCase.createDish(dish, categoryName);
@@ -105,7 +117,8 @@ class DishUseCaseTest {
         BigDecimal newPrice = BigDecimal.valueOf(20000);
 
         when(dishPersistencePort.findById(dishId)).thenReturn(Optional.of(dish));
-
+        when(authenticatePort.getCurrentUserId()).thenReturn(1L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
         try (MockedStatic<DishValidator> validator = Mockito.mockStatic(DishValidator.class)) {
             // Act
             dishUseCase.modifyDish(dishId, newDescription, newPrice);
@@ -119,20 +132,6 @@ class DishUseCaseTest {
     }
 
     @Test
-    void modifyDish_WhenDishNotFound_ThenThrowsException() {
-        // Arrange
-        Long dishId = 1L;
-        when(dishPersistencePort.findById(dishId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> dishUseCase.modifyDish(dishId, "Nueva descripción", BigDecimal.valueOf(20000)));
-
-        assertEquals(DishUseCaseConstants.DISH_NOT_FOUND, exception.getMessage());
-        verify(dishPersistencePort, never()).modifyDish(any(Dish.class));
-    }
-
-    @Test
     void modifyDish_WhenDescriptionIsNullOrEmpty_ThenKeepsOriginalDescription() {
         // Arrange
         Long dishId = 1L;
@@ -140,7 +139,8 @@ class DishUseCaseTest {
         BigDecimal newPrice = BigDecimal.valueOf(20000);
 
         when(dishPersistencePort.findById(dishId)).thenReturn(Optional.of(dish));
-
+        when(authenticatePort.getCurrentUserId()).thenReturn(1L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
         try (MockedStatic<DishValidator> validator = Mockito.mockStatic(DishValidator.class)) {
             // Act con descripción null
             dishUseCase.modifyDish(dishId, null, newPrice);
@@ -164,7 +164,8 @@ class DishUseCaseTest {
         BigDecimal originalPrice = BigDecimal.valueOf(15000);
 
         when(dishPersistencePort.findById(dishId)).thenReturn(Optional.of(dish));
-
+        when(authenticatePort.getCurrentUserId()).thenReturn(1L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
         try (MockedStatic<DishValidator> validator = Mockito.mockStatic(DishValidator.class)) {
             // Act con precio null
             dishUseCase.modifyDish(dishId, newDescription, null);
@@ -184,6 +185,50 @@ class DishUseCaseTest {
             // Assert
             assertEquals(originalPrice, dish.getPrice());
         }
+    }
+
+    @Test
+    void modifyDish_WhenDishNotFound_ThenThrowsException() {
+        // Arrange
+        Long dishId = 1L;
+        when(dishPersistencePort.findById(dishId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> dishUseCase.modifyDish(dishId, "Nueva descripción", BigDecimal.valueOf(20000)));
+
+        assertEquals(DishUseCaseConstants.DISH_NOT_FOUND, exception.getMessage());
+        verify(dishPersistencePort, never()).modifyDish(any(Dish.class));
+    }
+
+    @Test
+    void modifyDish_WhenUserIsNotRestaurantOwner_ThenThrowsException() {
+        // Arrange
+        Long dishId = 1L;
+        when(dishPersistencePort.findById(dishId)).thenReturn(Optional.of(dish));
+        when(authenticatePort.getCurrentUserId()).thenReturn(2L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
+
+        // Act & Assert
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> dishUseCase.modifyDish(dishId, "Nueva descripción", BigDecimal.valueOf(20000)));
+
+        assertEquals(DishUseCaseConstants.DIFFERENT_OWNER, exception.getMessage());
+        verify(dishPersistencePort, never()).modifyDish(any(Dish.class));
+    }
+
+    @Test
+    void createDish_WhenUserIsNotRestaurantOwner_ThenThrowsException() {
+        // Arrange
+        when(authenticatePort.getCurrentUserId()).thenReturn(2L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
+
+        // Act & Assert
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> dishUseCase.createDish(dish, categoryName));
+
+        assertEquals(DishUseCaseConstants.DIFFERENT_OWNER, exception.getMessage());
+        verify(dishPersistencePort, never()).createDish(any(Dish.class));
     }
 
 }

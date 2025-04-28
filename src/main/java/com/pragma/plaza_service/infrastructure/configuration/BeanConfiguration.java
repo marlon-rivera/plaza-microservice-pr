@@ -8,12 +8,10 @@ import com.pragma.plaza_service.application.mapper.IDishRequestMapper;
 import com.pragma.plaza_service.application.mapper.IRestaurantRequestMapper;
 import com.pragma.plaza_service.domain.api.IDishServicePort;
 import com.pragma.plaza_service.domain.api.IRestaurantServicePort;
-import com.pragma.plaza_service.domain.spi.IDishCategoryPersistencePort;
-import com.pragma.plaza_service.domain.spi.IDishPersistencePort;
-import com.pragma.plaza_service.domain.spi.IRestaurantPersistencePort;
-import com.pragma.plaza_service.domain.spi.IUserPersistencePort;
+import com.pragma.plaza_service.domain.spi.*;
 import com.pragma.plaza_service.domain.usecase.DishUseCase;
 import com.pragma.plaza_service.domain.usecase.RestaurantUseCase;
+import com.pragma.plaza_service.infrastructure.authenticate.AuthenticateAdapter;
 import com.pragma.plaza_service.infrastructure.feign.adapter.UserAdapterFeign;
 import com.pragma.plaza_service.infrastructure.feign.client.IUserFeignClient;
 import com.pragma.plaza_service.infrastructure.out.jpa.adapter.DishAdapterJPA;
@@ -74,8 +72,13 @@ public class BeanConfiguration {
     }
 
     @Bean
+    public IAutthenticatePort autthenticatePort(){
+        return new AuthenticateAdapter();
+    }
+
+    @Bean
     public IDishServicePort dishServicePort(){
-        return new DishUseCase(dishPersistencePort(), dishCategoryPersistencePort());
+        return new DishUseCase(dishPersistencePort(), dishCategoryPersistencePort(), restaurantPersistencePort(), autthenticatePort());
     }
 
     @Bean
