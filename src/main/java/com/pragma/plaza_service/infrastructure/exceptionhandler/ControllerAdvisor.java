@@ -2,6 +2,7 @@ package com.pragma.plaza_service.infrastructure.exceptionhandler;
 
 import com.pragma.plaza_service.domain.exception.InvalidDataException;
 import com.pragma.plaza_service.domain.exception.ResourceConflictException;
+import com.pragma.plaza_service.domain.exception.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -57,6 +58,13 @@ public class ControllerAdvisor {
     public ResponseEntity<ExceptionResponse> handleResourceConflictException(ResourceConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 new ExceptionResponse(ex.getMessage(), HttpStatus.CONFLICT.toString(), LocalDateTime.now())
+        );
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ExceptionResponse(ex.getMessage(), HttpStatus.NOT_FOUND.toString(), LocalDateTime.now())
         );
     }
 

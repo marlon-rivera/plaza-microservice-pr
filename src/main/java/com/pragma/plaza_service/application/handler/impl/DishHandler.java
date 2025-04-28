@@ -1,6 +1,7 @@
 package com.pragma.plaza_service.application.handler.impl;
 
 import com.pragma.plaza_service.application.dto.request.DishCreateDto;
+import com.pragma.plaza_service.application.dto.request.DishEditDto;
 import com.pragma.plaza_service.application.handler.IDishHandler;
 import com.pragma.plaza_service.application.mapper.IDishRequestMapper;
 import com.pragma.plaza_service.domain.api.IDishServicePort;
@@ -17,6 +18,15 @@ public class DishHandler implements IDishHandler {
         dishServicePort.createDish(
                 dishRequestMapper.toDish(dishCreateDto),
                 dishCreateDto.getCategory()
+        );
+    }
+
+    @Override
+    public void modifyDish(DishEditDto dishEditDto, Long idDish) {
+        dishServicePort.modifyDish(
+                idDish,
+                dishEditDto.getDescription(),
+                dishEditDto.getPrice()
         );
     }
 }
