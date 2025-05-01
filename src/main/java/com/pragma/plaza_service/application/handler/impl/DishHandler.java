@@ -29,4 +29,12 @@ public class DishHandler implements IDishHandler {
                 dishEditDto.getPrice()
         );
     }
+
+    @Override
+    public void updateDishStatus(Long idDish, boolean status) {
+        dishServicePort.changeDishStatus(
+                idDish,
+                status
+        );
+    }
 }

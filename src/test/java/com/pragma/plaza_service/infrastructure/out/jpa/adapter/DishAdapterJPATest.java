@@ -97,4 +97,17 @@ class DishAdapterJPATest {
         verify(dishEntityMapper).toOptionalDish(Optional.empty());
     }
 
+    @Test
+    void updateDish_ShouldUpdateDish() {
+        // Arrange
+        when(dishEntityMapper.toDishEntity(dish)).thenReturn(dishEntity);
+
+        // Act
+        dishAdapterJPA.updateDish(dish);
+
+        // Assert
+        verify(dishEntityMapper).toDishEntity(dish);
+        verify(dishRepository).save(dishEntity);
+    }
+
 }

@@ -2,6 +2,7 @@ package com.pragma.plaza_service.infrastructure.input.rest;
 
 import com.pragma.plaza_service.application.dto.request.DishCreateDto;
 import com.pragma.plaza_service.application.dto.request.DishEditDto;
+import com.pragma.plaza_service.application.dto.request.DishUpdateStatusDto;
 import com.pragma.plaza_service.application.dto.utils.constants.ResponsesCodes;
 import com.pragma.plaza_service.application.handler.IDishHandler;
 import com.pragma.plaza_service.infrastructure.util.constants.openapi.DishControllerOpenApiConstants;
@@ -64,6 +65,28 @@ public class DishController {
         return ResponseEntity.ok().build();
     }
 
-
+    @Operation(
+            summary = DishControllerOpenApiConstants.DISH_CHANGE_STATUS_SUMMARY,
+            description = DishControllerOpenApiConstants.DISH_CHANGE_STATUS_DESCRIPTION,
+            responses = {
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.OK,
+                            description = DishControllerOpenApiConstants.DISH_CHANGE_STATUS_RESPONSE_DESCRIPTION
+                    ),
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.BAD_REQUEST,
+                            description = DishControllerOpenApiConstants.DISH_CHANGE_STATUS_RESPONSE_400_DESCRIPTION
+                    ),
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.NOT_FOUND,
+                            description = DishControllerOpenApiConstants.DISH_CHANGE_STATUS_RESPONSE_404_DESCRIPTION
+                    )
+            }
+    )
+    @PutMapping("/status/{id}")
+    public ResponseEntity<Void> changeDishStatus(@PathVariable Long id, @Valid @RequestBody DishUpdateStatusDto dishUpdateStatusDto) {
+        dishHandler.updateDishStatus(id, dishUpdateStatusDto.getStatus());
+        return ResponseEntity.ok().build();
+    }
 
 }

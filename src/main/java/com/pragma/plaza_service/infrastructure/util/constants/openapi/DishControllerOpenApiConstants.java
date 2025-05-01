@@ -13,5 +13,10 @@ public class DishControllerOpenApiConstants {
     public static final String DISH_EDIT_RESPONSE_DESCRIPTION = "Dish edited successfully.";
     public static final String DISH_EDIT_RESPONSE_400_DESCRIPTION = "Invalid request data.";
     public static final String DISH_EDIT_RESPONSE_404_DESCRIPTION = "Dish not found.";
+    public static final String DISH_CHANGE_STATUS_SUMMARY = "Update dish status";
+    public static final String DISH_CHANGE_STATUS_DESCRIPTION = "This endpoint allows you to update the status of a dish.";
+    public static final String DISH_CHANGE_STATUS_RESPONSE_DESCRIPTION = "Dish status updated successfully.";
+    public static final String DISH_CHANGE_STATUS_RESPONSE_400_DESCRIPTION = "Invalid request data.";
+    public static final String DISH_CHANGE_STATUS_RESPONSE_404_DESCRIPTION = "Dish not found.";
 
 }

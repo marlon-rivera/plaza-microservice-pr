@@ -231,4 +231,73 @@ class DishUseCaseTest {
         verify(dishPersistencePort, never()).createDish(any(Dish.class));
     }
 
+    @Test
+    void changeDishStatus_WhenDishExists_ThenChangesStatusSuccessfully() {
+        // Arrange
+        Long dishId = 1L;
+        dish.setActive(true);
+        boolean newStatus = false;
+
+        when(dishPersistencePort.findById(dishId)).thenReturn(Optional.of(dish));
+        when(authenticatePort.getCurrentUserId()).thenReturn(1L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
+
+        // Act
+        dishUseCase.changeDishStatus(dishId, newStatus);
+
+        // Assert
+        assertFalse(dish.isActive());
+        verify(dishPersistencePort).updateDish(dish);
+    }
+
+    @Test
+    void changeDishStatus_WhenDishNotFound_ThenThrowsException() {
+        // Arrange
+        Long dishId = 1L;
+        when(dishPersistencePort.findById(dishId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> dishUseCase.changeDishStatus(dishId, false));
+
+        assertEquals(DishUseCaseConstants.DISH_NOT_FOUND, exception.getMessage());
+        verify(dishPersistencePort, never()).updateDish(any(Dish.class));
+    }
+
+    @Test
+    void changeDishStatus_WhenUserIsNotRestaurantOwner_ThenThrowsException() {
+        // Arrange
+        Long dishId = 1L;
+
+        when(dishPersistencePort.findById(dishId)).thenReturn(Optional.of(dish));
+        when(authenticatePort.getCurrentUserId()).thenReturn(2L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
+
+        // Act & Assert
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> dishUseCase.changeDishStatus(dishId, false));
+
+        assertEquals(DishUseCaseConstants.DIFFERENT_OWNER, exception.getMessage());
+        verify(dishPersistencePort, never()).updateDish(any(Dish.class));
+    }
+
+    @Test
+    void changeDishStatus_WhenStatusIsAlreadyTheSame_ThenDoesNothing() {
+        // Arrange
+        Long dishId = 1L;
+        dish.setActive(true);
+        boolean sameStatus = true;
+
+        when(dishPersistencePort.findById(dishId)).thenReturn(Optional.of(dish));
+        when(authenticatePort.getCurrentUserId()).thenReturn(1L);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(dish.getRestaurantId())).thenReturn(1L);
+
+        // Act
+        dishUseCase.changeDishStatus(dishId, sameStatus);
+
+        // Assert
+        assertTrue(dish.isActive());
+        verify(dishPersistencePort, never()).updateDish(any(Dish.class));
+    }
+
 }
