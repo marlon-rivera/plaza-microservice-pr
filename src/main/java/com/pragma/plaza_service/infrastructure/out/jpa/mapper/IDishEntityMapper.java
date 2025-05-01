@@ -5,6 +5,7 @@ import com.pragma.plaza_service.infrastructure.out.jpa.entity.DishEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.List;
 import java.util.Optional;
 
 @Mapper(
@@ -20,5 +21,7 @@ public interface IDishEntityMapper {
     default Optional<Dish> toOptionalDish(Optional<DishEntity> dishEntity) {
         return dishEntity.map(this::toDish);
     }
+
+    List<Dish> toDishList(List<DishEntity> dishEntitiesList);
 
 }

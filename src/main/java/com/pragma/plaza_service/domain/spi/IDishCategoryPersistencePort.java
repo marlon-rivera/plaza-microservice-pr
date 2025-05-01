@@ -7,5 +7,6 @@ import java.util.Optional;
 public interface IDishCategoryPersistencePort {
 
     Optional<DishCategory> findByName(String name);
+    Optional<DishCategory> findById(Long id);
 
 }

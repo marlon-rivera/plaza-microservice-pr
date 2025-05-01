@@ -4,6 +4,8 @@ import com.pragma.plaza_service.domain.exception.ResourceConflictException;
 import com.pragma.plaza_service.domain.exception.ResourceNotFoundException;
 import com.pragma.plaza_service.domain.model.Dish;
 import com.pragma.plaza_service.domain.model.DishCategory;
+import com.pragma.plaza_service.domain.model.PaginationInfo;
+import com.pragma.plaza_service.domain.model.Restaurant;
 import com.pragma.plaza_service.domain.spi.IAutthenticatePort;
 import com.pragma.plaza_service.domain.spi.IDishCategoryPersistencePort;
 import com.pragma.plaza_service.domain.spi.IDishPersistencePort;
@@ -20,6 +22,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -298,6 +301,80 @@ class DishUseCaseTest {
         // Assert
         assertTrue(dish.isActive());
         verify(dishPersistencePort, never()).updateDish(any(Dish.class));
+    }
+
+    @Test
+    void listDishes_WhenRestaurantAndCategoryExist_ThenReturnsDishesList() {
+        // Arrange
+        Long restaurantId = 1L;
+        Long categoryId = 1L;
+        int page = 0;
+        int sizePage = 10;
+        PaginationInfo<Dish> expectedPaginationInfo = new PaginationInfo<>(
+                List.of(dish),
+                page,
+                sizePage,
+                1L,
+                1,
+                false,
+                false
+        );
+
+        when(dishCategoryPersistencePort.findById(categoryId)).thenReturn(Optional.of(dishCategory));
+        when(restaurantPersistencePort.findById(restaurantId)).thenReturn(Optional.of(mock(Restaurant.class)));
+        when(dishPersistencePort.listDishesByRestaurantAndCategory(restaurantId, categoryId, page, sizePage))
+                .thenReturn(expectedPaginationInfo);
+
+        // Act
+        PaginationInfo<Dish> result = dishUseCase.listDishes(restaurantId, categoryId, page, sizePage);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(expectedPaginationInfo, result);
+        verify(dishCategoryPersistencePort).findById(categoryId);
+        verify(restaurantPersistencePort).findById(restaurantId);
+        verify(dishPersistencePort).listDishesByRestaurantAndCategory(restaurantId, categoryId, page, sizePage);
+    }
+
+    @Test
+    void listDishes_WhenCategoryDoesNotExist_ThenThrowsResourceNotFoundException() {
+        // Arrange
+        Long restaurantId = 1L;
+        Long categoryId = 1L;
+        int page = 0;
+        int sizePage = 10;
+
+        when(dishCategoryPersistencePort.findById(categoryId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> dishUseCase.listDishes(restaurantId, categoryId, page, sizePage));
+
+        assertEquals(DishUseCaseConstants.DISH_CATEGORY_NOT_FOUND, exception.getMessage());
+        verify(dishCategoryPersistencePort).findById(categoryId);
+        verify(restaurantPersistencePort, never()).findById(any());
+        verify(dishPersistencePort, never()).listDishesByRestaurantAndCategory(any(), any(), anyInt(), anyInt());
+    }
+
+    @Test
+    void listDishes_WhenRestaurantDoesNotExist_ThenThrowsResourceNotFoundException() {
+        // Arrange
+        Long restaurantId = 1L;
+        Long categoryId = 1L;
+        int page = 0;
+        int sizePage = 10;
+
+        when(dishCategoryPersistencePort.findById(categoryId)).thenReturn(Optional.of(dishCategory));
+        when(restaurantPersistencePort.findById(restaurantId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> dishUseCase.listDishes(restaurantId, categoryId, page, sizePage));
+
+        assertEquals(DishUseCaseConstants.RESTAURANT_NOT_FOUND, exception.getMessage());
+        verify(dishCategoryPersistencePort).findById(categoryId);
+        verify(restaurantPersistencePort).findById(restaurantId);
+        verify(dishPersistencePort, never()).listDishesByRestaurantAndCategory(any(), any(), anyInt(), anyInt());
     }
 
 }

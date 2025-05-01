@@ -2,7 +2,10 @@ package com.pragma.plaza_service.infrastructure.input.rest;
 
 import com.pragma.plaza_service.application.dto.request.DishCreateDto;
 import com.pragma.plaza_service.application.dto.request.DishEditDto;
+import com.pragma.plaza_service.application.dto.request.DishListDto;
 import com.pragma.plaza_service.application.dto.request.DishUpdateStatusDto;
+import com.pragma.plaza_service.application.dto.response.DishResponse;
+import com.pragma.plaza_service.application.dto.response.PaginationInfoResponse;
 import com.pragma.plaza_service.application.dto.utils.constants.ResponsesCodes;
 import com.pragma.plaza_service.application.handler.IDishHandler;
 import com.pragma.plaza_service.infrastructure.util.constants.openapi.DishControllerOpenApiConstants;
@@ -87,6 +90,26 @@ public class DishController {
     public ResponseEntity<Void> changeDishStatus(@PathVariable Long id, @Valid @RequestBody DishUpdateStatusDto dishUpdateStatusDto) {
         dishHandler.updateDishStatus(id, dishUpdateStatusDto.getStatus());
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = DishControllerOpenApiConstants.DISH_LIST_SUMMARY,
+            description = DishControllerOpenApiConstants.DISH_LIST_DESCRIPTION,
+            responses = {
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.OK,
+                            description = DishControllerOpenApiConstants.DISH_LIST_RESPONSE_DESCRIPTION
+                    ),
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.BAD_REQUEST,
+                            description = DishControllerOpenApiConstants.DISH_LIST_RESPONSE_400_DESCRIPTION
+                    )
+            }
+    )
+    @GetMapping
+    public ResponseEntity<PaginationInfoResponse<DishResponse>> listDishes(@Valid @RequestBody DishListDto dishListRequestDto) {
+        PaginationInfoResponse<DishResponse> response = dishHandler.listDishesByRestaurantAndCategory(dishListRequestDto);
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -2,7 +2,10 @@ package com.pragma.plaza_service.infrastructure.input.rest;
 
 import com.pragma.plaza_service.application.dto.request.DishCreateDto;
 import com.pragma.plaza_service.application.dto.request.DishEditDto;
+import com.pragma.plaza_service.application.dto.request.DishListDto;
 import com.pragma.plaza_service.application.dto.request.DishUpdateStatusDto;
+import com.pragma.plaza_service.application.dto.response.DishResponse;
+import com.pragma.plaza_service.application.dto.response.PaginationInfoResponse;
 import com.pragma.plaza_service.application.handler.IDishHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,4 +83,21 @@ class DishControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNull(response.getBody());
     }
+
+    @Test
+    void listDishes_ShouldReturnOkStatus() {
+        // Arrange
+        DishListDto dishListDto = new DishListDto();
+        PaginationInfoResponse<DishResponse> paginationResponse = new PaginationInfoResponse<>();
+        when(dishHandler.listDishesByRestaurantAndCategory(dishListDto)).thenReturn(paginationResponse);
+
+        // Act
+        ResponseEntity<PaginationInfoResponse<DishResponse>> response = dishController.listDishes(dishListDto);
+
+        // Assert
+        verify(dishHandler, times(1)).listDishesByRestaurantAndCategory(dishListDto);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(paginationResponse, response.getBody());
+    }
+
 }

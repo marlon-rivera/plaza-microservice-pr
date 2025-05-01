@@ -76,4 +76,44 @@ class DishCategoryAdapterJPATest {
         verify(dishCategoryEntityMapper, times(1)).toDishCategoryOptional(Optional.empty());
     }
 
+    @Test
+    void findById_WithExistingId_ShouldReturnDishCategory() {
+        // Arrange
+        Long categoryId = 1L;
+
+        when(dishCategoryRepository.findById(categoryId)).thenReturn(Optional.of(dishCategoryEntity));
+        when(dishCategoryEntityMapper.toDishCategoryOptional(Optional.of(dishCategoryEntity)))
+                .thenReturn(Optional.of(dishCategory));
+
+        // Act
+        Optional<DishCategory> result = dishCategoryAdapterJPA.findById(categoryId);
+
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals(categoryId, result.get().getId());
+        assertEquals(CATEGORY_NAME, result.get().getName());
+
+        verify(dishCategoryRepository).findById(categoryId);
+        verify(dishCategoryEntityMapper).toDishCategoryOptional(Optional.of(dishCategoryEntity));
+    }
+
+    @Test
+    void findById_WithNonExistingId_ShouldReturnEmptyOptional() {
+        // Arrange
+        Long categoryId = 999L;
+
+        when(dishCategoryRepository.findById(categoryId)).thenReturn(Optional.empty());
+        when(dishCategoryEntityMapper.toDishCategoryOptional(Optional.empty()))
+                .thenReturn(Optional.empty());
+
+        // Act
+        Optional<DishCategory> result = dishCategoryAdapterJPA.findById(categoryId);
+
+        // Assert
+        assertFalse(result.isPresent());
+
+        verify(dishCategoryRepository).findById(categoryId);
+        verify(dishCategoryEntityMapper).toDishCategoryOptional(Optional.empty());
+    }
+
 }
