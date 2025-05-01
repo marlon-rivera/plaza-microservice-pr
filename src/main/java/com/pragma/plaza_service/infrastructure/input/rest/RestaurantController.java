@@ -10,10 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/restaurant")
@@ -45,6 +42,22 @@ public class RestaurantController {
     public ResponseEntity<Void> createRestaurant(@Valid @RequestBody RestaurantCreateDto restaurantCreateDto) {
         restaurantHandler.createRestaurant(restaurantCreateDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Operation(
+            summary = RestaurantControllerOpenApiConstants.VALIDATE_RESTAURANT_OWNER_SUMMARY,
+            description = RestaurantControllerOpenApiConstants.VALIDATE_RESTAURANT_OWNER_DESCRIPTION,
+            responses = {
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.OK,
+                            description = RestaurantControllerOpenApiConstants.VALIDATE_RESTAURANT_OWNER_RESPONSE_DESCRIPTION
+                    )
+            }
+    )
+    @GetMapping("/validate-owner/{restaurantId}")
+    public ResponseEntity<Boolean> validateOwnerRestaurant(@PathVariable Long restaurantId) {
+        boolean isOwner = restaurantHandler.validateRestaurantOwner(restaurantId);
+        return ResponseEntity.ok(isOwner);
     }
 
 }

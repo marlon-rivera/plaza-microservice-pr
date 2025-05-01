@@ -3,6 +3,7 @@ package com.pragma.plaza_service.domain.usecase;
 import com.pragma.plaza_service.domain.exception.ResourceConflictException;
 import com.pragma.plaza_service.domain.exception.UserNotOwnerException;
 import com.pragma.plaza_service.domain.model.Restaurant;
+import com.pragma.plaza_service.domain.spi.IAutthenticatePort;
 import com.pragma.plaza_service.domain.spi.IRestaurantPersistencePort;
 import com.pragma.plaza_service.domain.spi.IUserPersistencePort;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,9 @@ class RestaurantUseCaseTest {
 
     @Mock
     private IUserPersistencePort userPersistencePort;
+
+    @Mock
+    private IAutthenticatePort autthenticatePort;
 
     @InjectMocks
     private RestaurantUseCase restaurantUseCase;
@@ -54,9 +58,7 @@ class RestaurantUseCaseTest {
     void createRestaurant_WhenUserIsNotOwner_ShouldThrowUserNotOwnerException() {
         when(userPersistencePort.isOwner(restaurant.getOwnerId())).thenReturn(false);
 
-        assertThrows(UserNotOwnerException.class, () -> {
-            restaurantUseCase.createRestaurant(restaurant);
-        });
+        assertThrows(UserNotOwnerException.class, () -> restaurantUseCase.createRestaurant(restaurant));
 
         verify(restaurantPersistencePort, never()).saveRestaurant(any(Restaurant.class));
     }
@@ -66,11 +68,36 @@ class RestaurantUseCaseTest {
         when(userPersistencePort.isOwner(restaurant.getOwnerId())).thenReturn(true);
         when(restaurantPersistencePort.existsByNit(restaurant.getNit())).thenReturn(true);
 
-        assertThrows(ResourceConflictException.class, () -> {
-            restaurantUseCase.createRestaurant(restaurant);
-        });
+        assertThrows(ResourceConflictException.class, () -> restaurantUseCase.createRestaurant(restaurant));
 
         verify(restaurantPersistencePort, never()).saveRestaurant(any(Restaurant.class));
+    }
+
+    @Test
+    void validateOwnerRestaurant_WhenCurrentUserIsOwner_ShouldReturnTrue() {
+        Long restaurantId = 1L;
+        Long ownerId = 10L;
+
+        when(autthenticatePort.getCurrentUserId()).thenReturn(ownerId);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(restaurantId)).thenReturn(ownerId);
+
+        boolean result = restaurantUseCase.validateOwnerRestaurant(restaurantId);
+
+        assertTrue(result);
+    }
+
+    @Test
+    void validateOwnerRestaurant_WhenCurrentUserIsNotOwner_ShouldReturnFalse() {
+        Long restaurantId = 1L;
+        Long ownerId = 10L;
+        Long currentUserId = 20L;
+
+        when(autthenticatePort.getCurrentUserId()).thenReturn(currentUserId);
+        when(restaurantPersistencePort.findOwnerIdByRestaurantId(restaurantId)).thenReturn(ownerId);
+
+        boolean result = restaurantUseCase.validateOwnerRestaurant(restaurantId);
+
+        assertFalse(result);
     }
 
 }

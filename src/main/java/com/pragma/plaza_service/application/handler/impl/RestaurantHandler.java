@@ -17,4 +17,9 @@ public class RestaurantHandler implements IRestaurantHandler {
         restaurantServicePort.createRestaurant(restaurantRequestMapper.toRestaurant(restaurantCreateDto));
     }
 
+    @Override
+    public boolean validateRestaurantOwner(Long restaurantId) {
+        return restaurantServicePort.validateOwnerRestaurant(restaurantId);
+    }
+
 }
