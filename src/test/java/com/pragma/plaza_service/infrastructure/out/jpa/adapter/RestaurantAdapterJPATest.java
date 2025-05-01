@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -164,6 +165,51 @@ class RestaurantAdapterJPATest {
 
         verify(restaurantRepository).findAllByOrderByNameAsc(any(Pageable.class));
         verify(restaurantEntityMapper).toRestaurantList(emptyList);
+    }
+
+    @Test
+    void findById_ShouldReturnRestaurant_WhenRestaurantExists() {
+        // Arrange
+        Long restaurantId = 1L;
+        RestaurantEntity restaurantEntity = new RestaurantEntity();
+        restaurantEntity.setId(restaurantId);
+        restaurantEntity.setName("Restaurante Prueba");
+        restaurantEntity.setNit("123456789");
+
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(restaurantId);
+        restaurant.setName("Restaurante Prueba");
+        restaurant.setNit("123456789");
+
+        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.of(restaurantEntity));
+        when(restaurantEntityMapper.toRestaurantOptional(Optional.of(restaurantEntity))).thenReturn(Optional.of(restaurant));
+
+        // Act
+        Optional<Restaurant> result = restaurantAdapterJPA.findById(restaurantId);
+
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals(restaurantId, result.get().getId());
+        assertEquals("Restaurante Prueba", result.get().getName());
+        assertEquals("123456789", result.get().getNit());
+        verify(restaurantRepository, times(1)).findById(restaurantId);
+        verify(restaurantEntityMapper, times(1)).toRestaurantOptional(Optional.of(restaurantEntity));
+    }
+
+    @Test
+    void findById_ShouldReturnEmptyOptional_WhenRestaurantDoesNotExist() {
+        // Arrange
+        Long restaurantId = 99L;
+        when(restaurantRepository.findById(restaurantId)).thenReturn(Optional.empty());
+        when(restaurantEntityMapper.toRestaurantOptional(Optional.empty())).thenReturn(Optional.empty());
+
+        // Act
+        Optional<Restaurant> result = restaurantAdapterJPA.findById(restaurantId);
+
+        // Assert
+        assertFalse(result.isPresent());
+        verify(restaurantRepository, times(1)).findById(restaurantId);
+        verify(restaurantEntityMapper, times(1)).toRestaurantOptional(Optional.empty());
     }
 
 }
