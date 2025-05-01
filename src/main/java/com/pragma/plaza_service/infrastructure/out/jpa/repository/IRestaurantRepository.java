@@ -1,6 +1,8 @@
 package com.pragma.plaza_service.infrastructure.out.jpa.repository;
 
 import com.pragma.plaza_service.infrastructure.out.jpa.entity.RestaurantEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -9,4 +11,5 @@ public interface IRestaurantRepository extends JpaRepository<RestaurantEntity, L
     boolean existsByNit(String nit);
     @Query("SELECT r.ownerId FROM RestaurantEntity r WHERE r.id = :restaurantId")
     Long findOwnerIdById(Long restaurantId);
+    Page<RestaurantEntity> findAllByOrderByNameAsc(Pageable pageable);
 }
