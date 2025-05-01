@@ -6,6 +6,7 @@ import com.pragma.plaza_service.application.handler.impl.DishHandler;
 import com.pragma.plaza_service.application.handler.impl.RestaurantHandler;
 import com.pragma.plaza_service.application.mapper.IDishRequestMapper;
 import com.pragma.plaza_service.application.mapper.IRestaurantRequestMapper;
+import com.pragma.plaza_service.application.mapper.IRestaurantResponseMapper;
 import com.pragma.plaza_service.domain.api.IDishServicePort;
 import com.pragma.plaza_service.domain.api.IRestaurantServicePort;
 import com.pragma.plaza_service.domain.spi.*;
@@ -34,6 +35,7 @@ public class BeanConfiguration {
     private final IRestaurantRepository restaurantRepository;
     private final IRestaurantEntityMapper restaurantEntityMapper;
     private final IRestaurantRequestMapper restaurantRequestMapper;
+    private final IRestaurantResponseMapper restaurantResponseMapper;
     private final IUserFeignClient userFeignClient;
     private final IDishCategoryRepository dishCategoryRepository;
     private final IDishRepository dishRepository;
@@ -58,7 +60,7 @@ public class BeanConfiguration {
 
     @Bean
     public IRestaurantHandler restaurantHandler(){
-        return new RestaurantHandler(restaurantRequestMapper, restaurantServicePort());
+        return new RestaurantHandler(restaurantRequestMapper, restaurantResponseMapper, restaurantServicePort());
     }
 
     @Bean

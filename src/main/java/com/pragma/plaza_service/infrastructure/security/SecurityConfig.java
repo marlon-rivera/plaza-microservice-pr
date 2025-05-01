@@ -31,6 +31,7 @@ public class SecurityConfig {
                         auth ->
                                 auth
                                         .requestMatchers("/restaurant").hasRole(RoleEnum.ADMIN.name())
+                                        .requestMatchers("/restaurant/all").authenticated()
                                         .requestMatchers("/dish").hasRole(RoleEnum.OWNER.name())
                                         .requestMatchers("/dish/{id}").hasRole(RoleEnum.OWNER.name())
                                         .requestMatchers("/dish/status/{id}").hasRole(RoleEnum.OWNER.name())

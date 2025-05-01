@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -68,4 +69,20 @@ public class ControllerAdvisor {
         );
     }
 
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ValidationExceptionResponse> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
+        List<String> errorMessages = ex.getAllErrors()
+                .stream()
+                .map(objectError -> {
+                    if (objectError instanceof FieldError fieldError) {
+                        return fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                    } else {
+                        return objectError.getDefaultMessage();
+                    }
+                })
+                .toList();
+        return ResponseEntity.badRequest().body(
+                new ValidationExceptionResponse(errorMessages, HttpStatus.BAD_REQUEST.toString(), LocalDateTime.now())
+        );
+    }
 }
