@@ -1,6 +1,7 @@
 package com.pragma.plaza_service.infrastructure.out.jpa.adapter;
 
 import com.pragma.plaza_service.domain.model.Dish;
+import com.pragma.plaza_service.domain.model.PaginationInfo;
 import com.pragma.plaza_service.infrastructure.out.jpa.entity.DishEntity;
 import com.pragma.plaza_service.infrastructure.out.jpa.mapper.IDishEntityMapper;
 import com.pragma.plaza_service.infrastructure.out.jpa.repository.IDishRepository;
@@ -10,7 +11,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -110,4 +116,83 @@ class DishAdapterJPATest {
         verify(dishRepository).save(dishEntity);
     }
 
+    @Test
+    void listDishesByRestaurantAndCategory_ShouldReturnPaginatedDishes() {
+        // Arrange
+        Long restaurantId = 1L;
+        Long categoryId = 2L;
+        int page = 0;
+        int sizePage = 10;
+
+        DishEntity dish1 = new DishEntity();
+        dish1.setName("Dish A");
+        dish1.setPrice(BigDecimal.valueOf(10000L));
+
+        DishEntity dish2 = new DishEntity();
+        dish2.setName("Dish B");
+        dish2.setPrice(BigDecimal.valueOf(15000L));
+
+        List<DishEntity> dishEntities = List.of(dish1, dish2);
+        Page<DishEntity> dishPage = new PageImpl<>(dishEntities, Pageable.ofSize(sizePage).withPage(page), 2);
+
+        Dish dishModel1 = new Dish();
+        dishModel1.setName("Dish A");
+        dishModel1.setPrice(BigDecimal.valueOf(10000L));
+
+        Dish dishModel2 = new Dish();
+        dishModel2.setName("Dish B");
+        dishModel2.setPrice(BigDecimal.valueOf(15000L));
+
+        List<Dish> dishModels = List.of(dishModel1, dishModel2);
+
+        when(dishRepository.findAllByRestaurantIdAndCategoryIdOrderByNameAsc(restaurantId, categoryId, Pageable.ofSize(sizePage).withPage(page)))
+                .thenReturn(dishPage);
+        when(dishEntityMapper.toDishList(dishEntities)).thenReturn(dishModels);
+
+        // Act
+        PaginationInfo<Dish> result = dishAdapterJPA.listDishesByRestaurantAndCategory(restaurantId, categoryId, page, sizePage);
+
+        // Assert
+        assertEquals(2, result.getList().size());
+        assertEquals(page, result.getCurrentPage());
+        assertEquals(sizePage, result.getPageSize());
+        assertEquals(2L, result.getTotalElements());
+        assertEquals(1, result.getTotalPages());
+        assertFalse(result.isHasNextPage());
+        assertFalse(result.isHasPreviousPage());
+
+        verify(dishRepository).findAllByRestaurantIdAndCategoryIdOrderByNameAsc(restaurantId, categoryId, Pageable.ofSize(sizePage).withPage(page));
+        verify(dishEntityMapper).toDishList(dishEntities);
+    }
+
+    @Test
+    void listDishesByRestaurantAndCategory_WithEmptyResult_ShouldReturnEmptyPagination() {
+        // Arrange
+        Long restaurantId = 1L;
+        Long categoryId = 2L;
+        int page = 0;
+        int sizePage = 10;
+
+        List<DishEntity> emptyList = List.of();
+        Page<DishEntity> emptyPage = new PageImpl<>(emptyList, Pageable.ofSize(sizePage).withPage(page), 0);
+
+        when(dishRepository.findAllByRestaurantIdAndCategoryIdOrderByNameAsc(restaurantId, categoryId, Pageable.ofSize(sizePage).withPage(page)))
+                .thenReturn(emptyPage);
+        when(dishEntityMapper.toDishList(emptyList)).thenReturn(List.of());
+
+        // Act
+        PaginationInfo<Dish> result = dishAdapterJPA.listDishesByRestaurantAndCategory(restaurantId, categoryId, page, sizePage);
+
+        // Assert
+        assertTrue(result.getList().isEmpty());
+        assertEquals(page, result.getCurrentPage());
+        assertEquals(sizePage, result.getPageSize());
+        assertEquals(0L, result.getTotalElements());
+        assertEquals(0, result.getTotalPages());
+        assertFalse(result.isHasNextPage());
+        assertFalse(result.isHasPreviousPage());
+
+        verify(dishRepository).findAllByRestaurantIdAndCategoryIdOrderByNameAsc(restaurantId, categoryId, Pageable.ofSize(sizePage).withPage(page));
+        verify(dishEntityMapper).toDishList(emptyList);
+    }
 }

@@ -6,6 +6,8 @@ import com.pragma.plaza_service.domain.exception.ResourceConflictException;
 import com.pragma.plaza_service.domain.exception.ResourceNotFoundException;
 import com.pragma.plaza_service.domain.model.Dish;
 import com.pragma.plaza_service.domain.model.DishCategory;
+import com.pragma.plaza_service.domain.model.PaginationInfo;
+import com.pragma.plaza_service.domain.model.Restaurant;
 import com.pragma.plaza_service.domain.spi.IAutthenticatePort;
 import com.pragma.plaza_service.domain.spi.IDishCategoryPersistencePort;
 import com.pragma.plaza_service.domain.spi.IDishPersistencePort;
@@ -69,6 +71,19 @@ public class DishUseCase implements IDishServicePort {
         }
         dish.setActive(status);
         dishPersistencePort.updateDish(dish);
+    }
+
+    @Override
+    public PaginationInfo<Dish> listDishes(Long restaurantId, Long categoryId, int page, int sizePage) {
+        Optional<DishCategory> dishCategoryOptional = dishCategoryPersistencePort.findById(categoryId);
+        if (dishCategoryOptional.isEmpty()) {
+            throw new ResourceNotFoundException(DishUseCaseConstants.DISH_CATEGORY_NOT_FOUND);
+        }
+        Optional<Restaurant> restaurantOptional = restaurantPersistencePort.findById(restaurantId);
+        if (restaurantOptional.isEmpty()) {
+            throw new ResourceNotFoundException(DishUseCaseConstants.RESTAURANT_NOT_FOUND);
+        }
+        return dishPersistencePort.listDishesByRestaurantAndCategory(restaurantId, categoryId, page, sizePage);
     }
 
     private void validateRestaurantOwner(Long restaurantId) {

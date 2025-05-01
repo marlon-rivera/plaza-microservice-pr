@@ -5,6 +5,7 @@ import com.pragma.plaza_service.infrastructure.security.jwt.JWTAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -32,7 +33,8 @@ public class SecurityConfig {
                                 auth
                                         .requestMatchers("/restaurant").hasRole(RoleEnum.ADMIN.name())
                                         .requestMatchers("/restaurant/all").authenticated()
-                                        .requestMatchers("/dish").hasRole(RoleEnum.OWNER.name())
+                                        .requestMatchers(HttpMethod.POST, "/dish").hasRole(RoleEnum.OWNER.name())
+                                        .requestMatchers(HttpMethod.GET, "/dish").authenticated()
                                         .requestMatchers("/dish/{id}").hasRole(RoleEnum.OWNER.name())
                                         .requestMatchers("/dish/status/{id}").hasRole(RoleEnum.OWNER.name())
                                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()

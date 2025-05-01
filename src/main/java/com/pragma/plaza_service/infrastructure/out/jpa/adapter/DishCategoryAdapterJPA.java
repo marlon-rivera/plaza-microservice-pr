@@ -20,4 +20,11 @@ public class DishCategoryAdapterJPA implements IDishCategoryPersistencePort {
                 dishCategoryRepository.findByName(name)
         );
     }
+
+    @Override
+    public Optional<DishCategory> findById(Long id) {
+        return dishCategoryEntityMapper.toDishCategoryOptional(
+                dishCategoryRepository.findById(id)
+        );
+    }
 }

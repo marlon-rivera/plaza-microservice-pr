@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 public class RestaurantAdapterJPA implements IRestaurantPersistencePort {
 
@@ -43,6 +45,13 @@ public class RestaurantAdapterJPA implements IRestaurantPersistencePort {
                 restaurantPage.getTotalPages(),
                 restaurantPage.hasNext(),
                 restaurantPage.hasPrevious()
+        );
+    }
+
+    @Override
+    public Optional<Restaurant> findById(Long id) {
+        return restaurantEntityMapper.toRestaurantOptional(
+                restaurantRepository.findById(id)
         );
     }
 
