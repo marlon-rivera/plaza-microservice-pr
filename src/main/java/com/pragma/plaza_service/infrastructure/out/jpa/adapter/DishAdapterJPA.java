@@ -34,4 +34,11 @@ public class DishAdapterJPA implements IDishPersistencePort {
                 dishRepository.findById(id)
         );
     }
+
+    @Override
+    public void updateDish(Dish dish) {
+        dishRepository.save(
+                dishEntityMapper.toDishEntity(dish)
+        );
+    }
 }

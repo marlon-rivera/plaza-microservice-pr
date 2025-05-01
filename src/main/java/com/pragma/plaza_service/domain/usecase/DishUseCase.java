@@ -56,6 +56,21 @@ public class DishUseCase implements IDishServicePort {
         dishPersistencePort.modifyDish(dish);
     }
 
+    @Override
+    public void changeDishStatus(Long id, boolean status) {
+        Optional<Dish> dishOptional = dishPersistencePort.findById(id);
+        if(dishOptional.isEmpty()){
+            throw new ResourceNotFoundException(DishUseCaseConstants.DISH_NOT_FOUND);
+        }
+        Dish dish = dishOptional.get();
+        validateRestaurantOwner(dish.getRestaurantId());
+        if (dish.isActive() == status) {
+            return;
+        }
+        dish.setActive(status);
+        dishPersistencePort.updateDish(dish);
+    }
+
     private void validateRestaurantOwner(Long restaurantId) {
         Long userId = authenticatePort.getCurrentUserId();
         Long restaurantOwnerId = restaurantPersistencePort.findOwnerIdByRestaurantId(restaurantId);

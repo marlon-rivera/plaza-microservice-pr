@@ -7,5 +7,6 @@ public interface IDishHandler {
 
     void createDish(DishCreateDto dishCreateDto);
     void modifyDish(DishEditDto dishEditDto, Long idDish);
+    void updateDishStatus(Long idDish, boolean status);
 
 }

@@ -2,6 +2,7 @@ package com.pragma.plaza_service.infrastructure.input.rest;
 
 import com.pragma.plaza_service.application.dto.request.DishCreateDto;
 import com.pragma.plaza_service.application.dto.request.DishEditDto;
+import com.pragma.plaza_service.application.dto.request.DishUpdateStatusDto;
 import com.pragma.plaza_service.application.handler.IDishHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,22 @@ class DishControllerTest {
 
         // Assert
         verify(dishHandler, times(1)).modifyDish(dishEditDto, dishId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void changeDishStatus_ShouldReturnOkStatus() {
+        // Arrange
+        Long dishId = 1L;
+        boolean status = true;
+        doNothing().when(dishHandler).updateDishStatus(dishId, status);
+
+        // Act
+        ResponseEntity<Void> response = dishController.changeDishStatus(dishId, new DishUpdateStatusDto(true));
+
+        // Assert
+        verify(dishHandler, times(1)).updateDishStatus(dishId, status);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNull(response.getBody());
     }

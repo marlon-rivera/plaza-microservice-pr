@@ -33,6 +33,7 @@ public class SecurityConfig {
                                         .requestMatchers("/restaurant").hasRole(RoleEnum.ADMIN.name())
                                         .requestMatchers("/dish").hasRole(RoleEnum.OWNER.name())
                                         .requestMatchers("/dish/{id}").hasRole(RoleEnum.OWNER.name())
+                                        .requestMatchers("/dish/status/{id}").hasRole(RoleEnum.OWNER.name())
                                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

@@ -8,5 +8,5 @@ public interface IDishServicePort {
 
     void createDish(Dish dish, String dishCategoryName);
     void modifyDish(Long id, String description, BigDecimal price);
-
+    void changeDishStatus(Long id, boolean status);
 }
