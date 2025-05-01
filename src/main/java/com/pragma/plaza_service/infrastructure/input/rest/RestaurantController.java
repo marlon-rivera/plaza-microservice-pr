@@ -1,12 +1,16 @@
 package com.pragma.plaza_service.infrastructure.input.rest;
 
 import com.pragma.plaza_service.application.dto.request.RestaurantCreateDto;
+import com.pragma.plaza_service.application.dto.response.PaginationInfoResponse;
+import com.pragma.plaza_service.application.dto.response.RestaurantResponseDto;
 import com.pragma.plaza_service.application.dto.utils.constants.ResponsesCodes;
 import com.pragma.plaza_service.application.handler.IRestaurantHandler;
 import com.pragma.plaza_service.infrastructure.util.constants.openapi.RestaurantControllerOpenApiConstants;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,4 +64,31 @@ public class RestaurantController {
         return ResponseEntity.ok(isOwner);
     }
 
+    @Operation(
+            summary = RestaurantControllerOpenApiConstants.LIST_RESTAURANTS_SUMMARY,
+            description = RestaurantControllerOpenApiConstants.LIST_RESTAURANTS_DESCRIPTION,
+            responses = {
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.OK,
+                            description = RestaurantControllerOpenApiConstants.LIST_RESTAURANTS_RESPONSE_DESCRIPTION
+                    )
+            }
+    )
+    @GetMapping("/all")
+    public ResponseEntity<PaginationInfoResponse<RestaurantResponseDto>> listRestaurants(
+            @Parameter(
+                    description = RestaurantControllerOpenApiConstants.DESCRIPTION_PARAM_PAGE,
+                    example = RestaurantControllerOpenApiConstants.DEFAULT_PAGE
+            )
+            @RequestParam(defaultValue = RestaurantControllerOpenApiConstants.DEFAULT_PAGE) int page,
+            @Parameter(
+                    description = RestaurantControllerOpenApiConstants.DESCRIPTION_PARAM_SIZE,
+                    example = RestaurantControllerOpenApiConstants.LIST_SIZE_DEFAULT
+            )
+            @Valid
+            @Min(value = 1, message = RestaurantControllerOpenApiConstants.MIN_LIST_SIZE)
+            @RequestParam(defaultValue = RestaurantControllerOpenApiConstants.LIST_SIZE_DEFAULT) int sizePage) {
+        PaginationInfoResponse<RestaurantResponseDto> restaurants = restaurantHandler.listRestaurants(page, sizePage);
+        return ResponseEntity.ok(restaurants);
+    }
 }
