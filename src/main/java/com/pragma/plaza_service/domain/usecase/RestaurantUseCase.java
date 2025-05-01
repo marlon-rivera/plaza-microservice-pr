@@ -4,6 +4,7 @@ import com.pragma.plaza_service.domain.api.IRestaurantServicePort;
 import com.pragma.plaza_service.domain.exception.ResourceConflictException;
 import com.pragma.plaza_service.domain.exception.UserNotOwnerException;
 import com.pragma.plaza_service.domain.model.Restaurant;
+import com.pragma.plaza_service.domain.spi.IAutthenticatePort;
 import com.pragma.plaza_service.domain.spi.IRestaurantPersistencePort;
 import com.pragma.plaza_service.domain.spi.IUserPersistencePort;
 import com.pragma.plaza_service.domain.util.constants.RestaurantUseCaseConstants;
@@ -15,6 +16,7 @@ public class RestaurantUseCase implements IRestaurantServicePort {
 
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IUserPersistencePort userPersistencePort;
+    private final IAutthenticatePort autthenticatePort;
 
     @Override
     public void createRestaurant(Restaurant restaurant) {
@@ -27,5 +29,12 @@ public class RestaurantUseCase implements IRestaurantServicePort {
         } else {
             throw new ResourceConflictException(RestaurantUseCaseConstants.RESTAURANT_WITH_NIT_ALREADY_EXISTS);
         }
+    }
+
+    @Override
+    public boolean validateOwnerRestaurant(Long restaurantId) {
+        Long id = autthenticatePort.getCurrentUserId();
+        Long ownerId = restaurantPersistencePort.findOwnerIdByRestaurantId(restaurantId);
+        return id.equals(ownerId);
     }
 }

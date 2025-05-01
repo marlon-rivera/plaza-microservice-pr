@@ -11,8 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 class RestaurantControllerTest {
 
@@ -37,5 +36,18 @@ class RestaurantControllerTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNull(response.getBody());
         verify(restaurantHandler).createRestaurant(restaurantCreateDto);
+    }
+
+    @Test
+    void validateOwnerRestaurant_ShouldReturnOkStatus() {
+        Long restaurantId = 1L;
+        boolean isOwner = true;
+        when(restaurantHandler.validateRestaurantOwner(restaurantId)).thenReturn(isOwner);
+
+        ResponseEntity<Boolean> response = restaurantController.validateOwnerRestaurant(restaurantId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(isOwner, response.getBody());
+        verify(restaurantHandler).validateRestaurantOwner(restaurantId);
     }
 }

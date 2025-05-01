@@ -5,5 +5,6 @@ import com.pragma.plaza_service.application.dto.request.RestaurantCreateDto;
 public interface IRestaurantHandler {
 
     void createRestaurant(RestaurantCreateDto restaurantCreateDto);
+    boolean validateRestaurantOwner(Long restaurantId);
 
 }
