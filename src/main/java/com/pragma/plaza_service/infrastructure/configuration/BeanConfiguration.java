@@ -1,30 +1,31 @@
 package com.pragma.plaza_service.infrastructure.configuration;
 
 import com.pragma.plaza_service.application.handler.IDishHandler;
+import com.pragma.plaza_service.application.handler.IOrderHandler;
 import com.pragma.plaza_service.application.handler.IRestaurantHandler;
 import com.pragma.plaza_service.application.handler.impl.DishHandler;
+import com.pragma.plaza_service.application.handler.impl.OrderHandler;
 import com.pragma.plaza_service.application.handler.impl.RestaurantHandler;
-import com.pragma.plaza_service.application.mapper.IDishRequestMapper;
-import com.pragma.plaza_service.application.mapper.IDishResponseMapper;
-import com.pragma.plaza_service.application.mapper.IRestaurantRequestMapper;
-import com.pragma.plaza_service.application.mapper.IRestaurantResponseMapper;
+import com.pragma.plaza_service.application.mapper.*;
 import com.pragma.plaza_service.domain.api.IDishServicePort;
+import com.pragma.plaza_service.domain.api.IOrderServicePort;
 import com.pragma.plaza_service.domain.api.IRestaurantServicePort;
 import com.pragma.plaza_service.domain.spi.*;
 import com.pragma.plaza_service.domain.usecase.DishUseCase;
+import com.pragma.plaza_service.domain.usecase.OrderUseCase;
 import com.pragma.plaza_service.domain.usecase.RestaurantUseCase;
 import com.pragma.plaza_service.infrastructure.authenticate.AuthenticateAdapter;
 import com.pragma.plaza_service.infrastructure.feign.adapter.UserAdapterFeign;
 import com.pragma.plaza_service.infrastructure.feign.client.IUserFeignClient;
 import com.pragma.plaza_service.infrastructure.out.jpa.adapter.DishAdapterJPA;
 import com.pragma.plaza_service.infrastructure.out.jpa.adapter.DishCategoryAdapterJPA;
+import com.pragma.plaza_service.infrastructure.out.jpa.adapter.OrderAdapterJPA;
 import com.pragma.plaza_service.infrastructure.out.jpa.adapter.RestaurantAdapterJPA;
 import com.pragma.plaza_service.infrastructure.out.jpa.mapper.IDishCategoryEntityMapper;
 import com.pragma.plaza_service.infrastructure.out.jpa.mapper.IDishEntityMapper;
+import com.pragma.plaza_service.infrastructure.out.jpa.mapper.IOrderEntityMapper;
 import com.pragma.plaza_service.infrastructure.out.jpa.mapper.IRestaurantEntityMapper;
-import com.pragma.plaza_service.infrastructure.out.jpa.repository.IDishCategoryRepository;
-import com.pragma.plaza_service.infrastructure.out.jpa.repository.IDishRepository;
-import com.pragma.plaza_service.infrastructure.out.jpa.repository.IRestaurantRepository;
+import com.pragma.plaza_service.infrastructure.out.jpa.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +45,10 @@ public class BeanConfiguration {
     private final IDishResponseMapper dishResponseMapper;
     private final IDishEntityMapper dishEntityMapper;
     private final IDishCategoryEntityMapper dishCategoryEntityMapper;
+    private final IOrderRepository orderRepository;
+    private final IOrderEntityMapper orderEntityMapper;
+    private final IOrderRequestMapper orderRequestMapper;
+    private final IOrderDishRepository orderDishRepository;
 
     @Bean
     public IRestaurantPersistencePort restaurantPersistencePort(){
@@ -88,5 +93,20 @@ public class BeanConfiguration {
     @Bean
     public IDishHandler dishHandler(){
         return new DishHandler(dishServicePort(), dishRequestMapper, dishResponseMapper);
+    }
+
+    @Bean
+    public IOrderPersistencePort orderPersistencePort(){
+        return new OrderAdapterJPA(orderRepository, orderEntityMapper, orderDishRepository);
+    }
+
+    @Bean
+    public IOrderServicePort orderServicePort(){
+        return new OrderUseCase(orderPersistencePort(), restaurantPersistencePort(), dishPersistencePort(), autthenticatePort());
+    }
+
+    @Bean
+    public IOrderHandler orderHandler(){
+        return new OrderHandler(orderServicePort(), orderRequestMapper);
     }
 }

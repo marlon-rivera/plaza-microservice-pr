@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Table(name = "restaurant")
 @AllArgsConstructor
@@ -21,5 +23,7 @@ public class RestaurantEntity {
     private String phoneNumber;
     private String logoUrl;
     private Long ownerId;
+    @OneToMany(mappedBy = "restaurantEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<OrderEntity> orders;
 
 }
