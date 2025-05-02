@@ -8,6 +8,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.List;
+
 @Mapper(
         componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.IGNORE
@@ -20,5 +22,11 @@ public interface IOrderEntityMapper {
     @Mapping(target = "order.id", ignore = true)
     @Mapping(target = "dishEntity.id", source = "orderDish.dish.id")
     OrderDishEntity toOrderDishEntity(OrderDish orderDish);
+
+    @Mapping(target = "restaurant", source = "orderEntity.restaurantEntity")
+    List<Order> toDomainList(List<OrderEntity> orderEntities);
+
+    @Mapping(target = "restaurant", source = "orderEntity.restaurantEntity")
+    Order toDomain(OrderEntity orderEntity);
 
 }

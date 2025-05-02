@@ -2,6 +2,7 @@ package com.pragma.plaza_service.infrastructure.out.jpa.adapter;
 
 import com.pragma.plaza_service.domain.model.Order;
 import com.pragma.plaza_service.domain.model.OrderDish;
+import com.pragma.plaza_service.domain.model.PaginationInfo;
 import com.pragma.plaza_service.domain.spi.IOrderPersistencePort;
 import com.pragma.plaza_service.infrastructure.out.jpa.entity.OrderDishEntity;
 import com.pragma.plaza_service.infrastructure.out.jpa.entity.OrderEntity;
@@ -9,6 +10,8 @@ import com.pragma.plaza_service.infrastructure.out.jpa.mapper.IOrderEntityMapper
 import com.pragma.plaza_service.infrastructure.out.jpa.repository.IOrderDishRepository;
 import com.pragma.plaza_service.infrastructure.out.jpa.repository.IOrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,5 +38,21 @@ public class OrderAdapterJPA implements IOrderPersistencePort {
     @Override
     public boolean existsOrderInProgressByClientId(Long clientId) {
         return orderRepository.existsOrderInProgressByClientId(clientId);
+    }
+
+    @Override
+    public PaginationInfo<Order> getOrdersByIdRestaurantAndStatus(Long idRestaurant, String status, int page, int size) {
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        Page<OrderEntity> pageResult = orderRepository.findAllByRestaurantEntityIdAndStatus(idRestaurant, status, pageable);
+        List<Order> orders = orderEntityMapper.toDomainList(pageResult.getContent());
+        return new PaginationInfo<>(
+                orders,
+                pageResult.getNumber(),
+                pageResult.getSize(),
+                pageResult.getTotalElements(),
+                pageResult.getTotalPages(),
+                pageResult.hasNext(),
+                pageResult.hasPrevious()
+        );
     }
 }

@@ -4,10 +4,7 @@ import com.pragma.plaza_service.domain.api.IOrderServicePort;
 import com.pragma.plaza_service.domain.exception.InvalidDataException;
 import com.pragma.plaza_service.domain.exception.ResourceConflictException;
 import com.pragma.plaza_service.domain.model.*;
-import com.pragma.plaza_service.domain.spi.IAutthenticatePort;
-import com.pragma.plaza_service.domain.spi.IDishPersistencePort;
-import com.pragma.plaza_service.domain.spi.IOrderPersistencePort;
-import com.pragma.plaza_service.domain.spi.IRestaurantPersistencePort;
+import com.pragma.plaza_service.domain.spi.*;
 import com.pragma.plaza_service.domain.util.constants.OrderUseCaseConstants;
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +19,7 @@ public class OrderUseCase implements IOrderServicePort {
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IDishPersistencePort dishPersistencePort;
     private final IAutthenticatePort autthenticatePort;
+    private final IUserPersistencePort userPersistencePort;
 
     @Override
     public void createOrder(Order order) {
@@ -31,6 +29,15 @@ public class OrderUseCase implements IOrderServicePort {
         order.setStatus(StatusOrderEnum.PENDING);
         order.setCreatedAt(LocalDateTime.now());
         orderPersistencePort.saveOrder(order);
+    }
+
+    @Override
+    public PaginationInfo<Order> getOrdersByRestaurantIdAndStatus(String status, int page, int size) {
+        Long restaurantId = userPersistencePort.getIdRestaurantByIdEmployee();
+        if (restaurantId == null) {
+            throw new InvalidDataException(OrderUseCaseConstants.EMPLOYEE_NOT_BELONG_TO_RESTAURANT);
+        }
+        return orderPersistencePort.getOrdersByIdRestaurantAndStatus(restaurantId, status, page, size);
     }
 
     private void validateOrder(Order order) {

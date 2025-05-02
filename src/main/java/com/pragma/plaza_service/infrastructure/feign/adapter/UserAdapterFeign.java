@@ -2,6 +2,7 @@ package com.pragma.plaza_service.infrastructure.feign.adapter;
 
 import com.pragma.plaza_service.domain.spi.IUserPersistencePort;
 import com.pragma.plaza_service.infrastructure.feign.client.IUserFeignClient;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -12,5 +13,14 @@ public class UserAdapterFeign implements IUserPersistencePort {
     @Override
     public boolean isOwner(Long ownerId) {
         return userFeignClient.isOwner(ownerId);
+    }
+
+    @Override
+    public Long getIdRestaurantByIdEmployee() {
+        try{
+            return userFeignClient.getIdRestaurantByIdEmployee();
+        }catch (FeignException e){
+            return null;
+        }
     }
 }
