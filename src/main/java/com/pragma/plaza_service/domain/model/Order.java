@@ -20,4 +20,5 @@ public class Order {
     private StatusOrderEnum status;
     private LocalDateTime createdAt;
     private List<OrderDish> orderDishes;
+    private Long idEmployee;
 }
