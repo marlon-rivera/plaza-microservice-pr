@@ -9,6 +9,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
+import java.util.Optional;
 
 @Mapper(
         componentModel = "spring",
@@ -29,4 +30,7 @@ public interface IOrderEntityMapper {
     @Mapping(target = "restaurant", source = "orderEntity.restaurantEntity")
     Order toDomain(OrderEntity orderEntity);
 
+    default Optional<Order> toOptionalDomain(Optional<OrderEntity> orderEntity) {
+        return orderEntity.map(this::toDomain);
+    }
 }

@@ -2,6 +2,7 @@ package com.pragma.plaza_service.infrastructure.out.jpa.adapter;
 
 import com.pragma.plaza_service.domain.model.Order;
 import com.pragma.plaza_service.domain.model.OrderDish;
+import com.pragma.plaza_service.domain.model.PaginationInfo;
 import com.pragma.plaza_service.infrastructure.out.jpa.entity.OrderDishEntity;
 import com.pragma.plaza_service.infrastructure.out.jpa.entity.OrderEntity;
 import com.pragma.plaza_service.infrastructure.out.jpa.mapper.IOrderEntityMapper;
@@ -13,9 +14,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -103,6 +107,106 @@ void saveOrder_ShouldSaveOrderAndOrderDishes() {
         // Assert
         assertFalse(result);
         verify(orderRepository).existsOrderInProgressByClientId(clientId);
+    }
+
+    @Test
+    void getOrdersByIdRestaurantAndStatus_ShouldReturnPaginatedResult() {
+        // Arrange
+        Long restaurantId = 1L;
+        String status = "PENDING";
+        int page = 0;
+        int size = 10;
+
+        List<OrderEntity> orderEntities = List.of(new OrderEntity(), new OrderEntity());
+        List<Order> orders = List.of(new Order(), new Order());
+
+        Page<OrderEntity> pageResult = mock(Page.class);
+
+        when(orderRepository.findAllByRestaurantEntityIdAndStatus(restaurantId, status,
+                Pageable.ofSize(size).withPage(page))).thenReturn(pageResult);
+        when(pageResult.getContent()).thenReturn(orderEntities);
+        when(orderEntityMapper.toDomainList(orderEntities)).thenReturn(orders);
+        when(pageResult.getNumber()).thenReturn(page);
+        when(pageResult.getSize()).thenReturn(size);
+        when(pageResult.getTotalElements()).thenReturn(20L);
+        when(pageResult.getTotalPages()).thenReturn(2);
+        when(pageResult.hasNext()).thenReturn(true);
+        when(pageResult.hasPrevious()).thenReturn(false);
+
+        // Act
+        PaginationInfo<Order> result = orderAdapterJPA.getOrdersByIdRestaurantAndStatus(
+                restaurantId, status, page, size);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(orders, result.getList());
+        assertEquals(page, result.getCurrentPage());
+        assertEquals(size, result.getPageSize());
+        assertEquals(20L, result.getTotalElements());
+        assertEquals(2, result.getTotalPages());
+        assertTrue(result.isHasNextPage());
+        assertFalse(result.isHasPreviousPage());
+
+        verify(orderRepository).findAllByRestaurantEntityIdAndStatus(restaurantId, status,
+                Pageable.ofSize(size).withPage(page));
+        verify(orderEntityMapper).toDomainList(orderEntities);
+    }
+
+    @Test
+    void findById_ShouldReturnOrder_WhenOrderExists() {
+        // Arrange
+        Long orderId = 1L;
+        OrderEntity orderEntity = new OrderEntity();
+        Order order = new Order();
+        Optional<OrderEntity> optionalOrderEntity = Optional.of(orderEntity);
+        Optional<Order> optionalOrder = Optional.of(order);
+
+        when(orderRepository.findById(orderId)).thenReturn(optionalOrderEntity);
+        when(orderEntityMapper.toOptionalDomain(optionalOrderEntity)).thenReturn(optionalOrder);
+
+        // Act
+        Optional<Order> result = orderAdapterJPA.findById(orderId);
+
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals(order, result.get());
+        verify(orderRepository).findById(orderId);
+        verify(orderEntityMapper).toOptionalDomain(optionalOrderEntity);
+    }
+
+    @Test
+    void findById_ShouldReturnEmptyOptional_WhenOrderDoesNotExist() {
+        // Arrange
+        Long orderId = 1L;
+        Optional<OrderEntity> optionalOrderEntity = Optional.empty();
+        Optional<Order> optionalOrder = Optional.empty();
+
+        when(orderRepository.findById(orderId)).thenReturn(optionalOrderEntity);
+        when(orderEntityMapper.toOptionalDomain(optionalOrderEntity)).thenReturn(optionalOrder);
+
+        // Act
+        Optional<Order> result = orderAdapterJPA.findById(orderId);
+
+        // Assert
+        assertFalse(result.isPresent());
+        verify(orderRepository).findById(orderId);
+        verify(orderEntityMapper).toOptionalDomain(optionalOrderEntity);
+    }
+
+    @Test
+    void updateOrder_ShouldUpdateExistingOrder() {
+        // Arrange
+        Order order = new Order();
+        OrderEntity orderEntity = new OrderEntity();
+
+        when(orderEntityMapper.toEntity(order)).thenReturn(orderEntity);
+
+        // Act
+        orderAdapterJPA.updateOrder(order);
+
+        // Assert
+        verify(orderEntityMapper).toEntity(order);
+        verify(orderRepository).save(orderEntity);
     }
 
 }
