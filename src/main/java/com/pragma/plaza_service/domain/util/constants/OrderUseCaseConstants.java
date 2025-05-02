@@ -1,0 +1,16 @@
+package com.pragma.plaza_service.domain.util.constants;
+
+public class OrderUseCaseConstants {
+
+    private OrderUseCaseConstants() {
+        // Prevent instantiation
+    }
+
+    public static final String ORDER_DISHES_CANNOT_BE_NULL_OR_EMPTY = "Order dishes cannot be null or empty";
+    public static final String CLIENT_ID_CANNOT_BE_NULL = "Client ID cannot be null";
+    public static final String RESTAURANT_ID_CANNOT_BE_NULL = "Restaurant ID cannot be null";
+    public static final String ORDER_IN_PROGRESS = "There is already an order in progress for this client";
+    public static final String RESTAURANT_NOT_FOUND = "Restaurant not found";
+    public static final String DISH_NOT_FOUND = "Dish not found";
+
+}

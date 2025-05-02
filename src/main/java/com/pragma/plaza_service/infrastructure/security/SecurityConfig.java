@@ -35,6 +35,7 @@ public class SecurityConfig {
                                         .requestMatchers("/restaurant/all").authenticated()
                                         .requestMatchers(HttpMethod.POST, "/dish").hasRole(RoleEnum.OWNER.name())
                                         .requestMatchers(HttpMethod.GET, "/dish").authenticated()
+                                        .requestMatchers(HttpMethod.POST, "/ORDER").hasRole(RoleEnum.CLIENT.name())
                                         .requestMatchers("/dish/{id}").hasRole(RoleEnum.OWNER.name())
                                         .requestMatchers("/dish/status/{id}").hasRole(RoleEnum.OWNER.name())
                                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()

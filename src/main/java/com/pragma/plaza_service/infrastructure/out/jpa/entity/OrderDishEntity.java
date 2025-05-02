@@ -5,26 +5,23 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
 @Entity
-@Table(name = "dish")
+@Table(name = "order_dish")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class DishEntity {
+public class OrderDishEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String description;
-    private BigDecimal price;
-    private String imageUrl;
     @ManyToOne
-    @JoinColumn(name = "category_id")
-    private DishCategoryEntity category;
-    private Long restaurantId;
-    private boolean isActive;
+    @JoinColumn(name = "order_id", nullable = false)
+    private OrderEntity orderEntity;
+    @ManyToOne
+    @JoinColumn(name = "dish_id", nullable = false)
+    private DishEntity dishEntity;
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
 
 }
