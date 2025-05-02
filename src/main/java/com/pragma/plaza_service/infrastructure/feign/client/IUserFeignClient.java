@@ -9,5 +9,7 @@ public interface IUserFeignClient {
 
     @GetMapping("/users/owner/{id}")
     boolean isOwner(@PathVariable("id")  Long id);
+    @GetMapping("/users/restaurant/employee")
+    Long getIdRestaurantByIdEmployee();
 
 }

@@ -48,6 +48,7 @@ public class BeanConfiguration {
     private final IOrderRepository orderRepository;
     private final IOrderEntityMapper orderEntityMapper;
     private final IOrderRequestMapper orderRequestMapper;
+    private final IOrderResponseMapper orderResponseMapper;
     private final IOrderDishRepository orderDishRepository;
 
     @Bean
@@ -102,11 +103,11 @@ public class BeanConfiguration {
 
     @Bean
     public IOrderServicePort orderServicePort(){
-        return new OrderUseCase(orderPersistencePort(), restaurantPersistencePort(), dishPersistencePort(), autthenticatePort());
+        return new OrderUseCase(orderPersistencePort(), restaurantPersistencePort(), dishPersistencePort(), autthenticatePort(), userPersistencePort());
     }
 
     @Bean
     public IOrderHandler orderHandler(){
-        return new OrderHandler(orderServicePort(), orderRequestMapper);
+        return new OrderHandler(orderServicePort(), orderRequestMapper, orderResponseMapper);
     }
 }

@@ -12,5 +12,6 @@ public class OrderUseCaseConstants {
     public static final String ORDER_IN_PROGRESS = "There is already an order in progress for this client";
     public static final String RESTAURANT_NOT_FOUND = "Restaurant not found";
     public static final String DISH_NOT_FOUND = "Dish not found";
+    public static final String EMPLOYEE_NOT_BELONG_TO_RESTAURANT = "Employee does not belong to the restaurant";
 
 }
