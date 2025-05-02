@@ -4,27 +4,26 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "dish")
+@Table(name = "orders")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class DishEntity {
+@ToString
+public class OrderEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String description;
-    private BigDecimal price;
-    private String imageUrl;
+    private Long clientId;
     @ManyToOne
-    @JoinColumn(name = "category_id")
-    private DishCategoryEntity category;
-    private Long restaurantId;
-    private boolean isActive;
+    @JoinColumn(name = "restaurant_id", nullable = false)
+    private RestaurantEntity restaurantEntity;
+    private String status;
+    private LocalDateTime createdAt;
 
 }
