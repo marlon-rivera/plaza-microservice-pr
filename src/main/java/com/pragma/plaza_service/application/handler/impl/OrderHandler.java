@@ -31,4 +31,9 @@ public class OrderHandler implements IOrderHandler {
                         orderListDto.getPage(), orderListDto.getSize())
         );
     }
+
+    @Override
+    public void assignOrder(Long orderId) {
+        orderServicePort.assignOrder(orderId);
+    }
 }

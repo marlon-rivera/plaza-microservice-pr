@@ -2,11 +2,9 @@ package com.pragma.plaza_service.domain.usecase;
 
 import com.pragma.plaza_service.domain.exception.InvalidDataException;
 import com.pragma.plaza_service.domain.exception.ResourceConflictException;
+import com.pragma.plaza_service.domain.exception.ResourceNotFoundException;
 import com.pragma.plaza_service.domain.model.*;
-import com.pragma.plaza_service.domain.spi.IAutthenticatePort;
-import com.pragma.plaza_service.domain.spi.IDishPersistencePort;
-import com.pragma.plaza_service.domain.spi.IOrderPersistencePort;
-import com.pragma.plaza_service.domain.spi.IRestaurantPersistencePort;
+import com.pragma.plaza_service.domain.spi.*;
 import com.pragma.plaza_service.domain.util.constants.OrderUseCaseConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +34,9 @@ class OrderUseCaseTest {
 
     @Mock
     private IAutthenticatePort autthenticatePort;
+
+    @Mock
+    private IUserPersistencePort userPersistencePort;
 
     @InjectMocks
     private OrderUseCase orderUseCase;
@@ -187,6 +188,143 @@ class OrderUseCaseTest {
         ResourceConflictException exception = assertThrows(ResourceConflictException.class, () -> orderUseCase.createOrder(order));
         assertEquals(OrderUseCaseConstants.ORDER_IN_PROGRESS, exception.getMessage());
         verify(orderPersistencePort, never()).saveOrder(any(Order.class));
+    }
+
+    @Test
+    void getOrdersByRestaurantIdAndStatus_Successfully() {
+        // Arrange
+        String status = "PENDING";
+        int page = 0;
+        int size = 10;
+        Long restaurantId = 2L;
+        PaginationInfo<Order> expectedPaginationInfo = new PaginationInfo<>(
+                List.of(),
+                0,
+                0,
+                0,
+                0,
+                false,
+                false
+        );
+
+        when(userPersistencePort.getIdRestaurantByIdEmployee()).thenReturn(restaurantId);
+        when(orderPersistencePort.getOrdersByIdRestaurantAndStatus(restaurantId, status, page, size))
+                .thenReturn(expectedPaginationInfo);
+
+        // Act
+        PaginationInfo<Order> result = orderUseCase.getOrdersByRestaurantIdAndStatus(status, page, size);
+
+        // Assert
+        assertEquals(expectedPaginationInfo, result);
+        verify(userPersistencePort).getIdRestaurantByIdEmployee();
+        verify(orderPersistencePort).getOrdersByIdRestaurantAndStatus(restaurantId, status, page, size);
+    }
+
+    @Test
+    void getOrdersByRestaurantIdAndStatus_WithNullRestaurantId_ThrowsInvalidDataException() {
+        // Arrange
+        String status = "PENDING";
+        int page = 0;
+        int size = 10;
+
+        when(userPersistencePort.getIdRestaurantByIdEmployee()).thenReturn(null);
+
+        // Act & Assert
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> orderUseCase.getOrdersByRestaurantIdAndStatus(status, page, size));
+        assertEquals(OrderUseCaseConstants.EMPLOYEE_NOT_BELONG_TO_RESTAURANT, exception.getMessage());
+        verify(userPersistencePort).getIdRestaurantByIdEmployee();
+        verify(orderPersistencePort, never()).getOrdersByIdRestaurantAndStatus(any(), any(), anyInt(), anyInt());
+    }
+
+    @Test
+    void assignOrder_Successfully() {
+        // Arrange
+        Long orderId = 1L;
+        Long employeeId = 5L;
+        Long restaurantId = 2L;
+
+        Order order = new Order();
+        order.setStatus(StatusOrderEnum.PENDING);
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(restaurantId);
+        order.setRestaurant(restaurant);
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+        when(userPersistencePort.getIdRestaurantByIdEmployee()).thenReturn(restaurantId);
+        when(autthenticatePort.getCurrentUserId()).thenReturn(employeeId);
+
+        // Act
+        orderUseCase.assignOrder(orderId);
+
+        // Assert
+        assertEquals(StatusOrderEnum.IN_PROGRESS, order.getStatus());
+        assertEquals(employeeId, order.getIdEmployee());
+        verify(orderPersistencePort).findById(orderId);
+        verify(userPersistencePort).getIdRestaurantByIdEmployee();
+        verify(autthenticatePort).getCurrentUserId();
+        verify(orderPersistencePort).updateOrder(order);
+    }
+
+    @Test
+    void assignOrder_WithNonExistentOrder_ThrowsResourceNotFoundException() {
+        // Arrange
+        Long orderId = 1L;
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> orderUseCase.assignOrder(orderId));
+        assertEquals(OrderUseCaseConstants.ORDER_NOT_FOUND, exception.getMessage());
+        verify(orderPersistencePort).findById(orderId);
+        verify(userPersistencePort, never()).getIdRestaurantByIdEmployee();
+        verify(orderPersistencePort, never()).updateOrder(any());
+    }
+
+    @Test
+    void assignOrder_WithNonPendingOrder_ThrowsInvalidDataException() {
+        // Arrange
+        Long orderId = 1L;
+
+        Order order = new Order();
+        order.setStatus(StatusOrderEnum.IN_PROGRESS); // No es PENDING
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+
+        // Act & Assert
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> orderUseCase.assignOrder(orderId));
+        assertEquals(OrderUseCaseConstants.ORDER_NOT_PENDING, exception.getMessage());
+        verify(orderPersistencePort).findById(orderId);
+        verify(userPersistencePort, never()).getIdRestaurantByIdEmployee();
+        verify(orderPersistencePort, never()).updateOrder(any());
+    }
+
+    @Test
+    void assignOrder_WithOrderFromDifferentRestaurant_ThrowsInvalidDataException() {
+        // Arrange
+        Long orderId = 1L;
+        Long employeeRestaurantId = 2L;
+        Long orderRestaurantId = 3L; // Diferente al restaurante del empleado
+
+        Order order = new Order();
+        order.setStatus(StatusOrderEnum.PENDING);
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(orderRestaurantId);
+        order.setRestaurant(restaurant);
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+        when(userPersistencePort.getIdRestaurantByIdEmployee()).thenReturn(employeeRestaurantId);
+
+        // Act & Assert
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> orderUseCase.assignOrder(orderId));
+        assertEquals(OrderUseCaseConstants.ORDER_NOT_BELONG_TO_RESTAURANT, exception.getMessage());
+        verify(orderPersistencePort).findById(orderId);
+        verify(userPersistencePort).getIdRestaurantByIdEmployee();
+        verify(autthenticatePort, never()).getCurrentUserId();
+        verify(orderPersistencePort, never()).updateOrder(any());
     }
 
 }
