@@ -1,6 +1,9 @@
 package com.pragma.plaza_service.infrastructure.input.rest;
 
+import com.pragma.plaza_service.application.dto.request.OrderListDto;
 import com.pragma.plaza_service.application.dto.request.OrderRequestCreateDto;
+import com.pragma.plaza_service.application.dto.response.OrderResponseDto;
+import com.pragma.plaza_service.application.dto.response.PaginationInfoResponse;
 import com.pragma.plaza_service.application.dto.utils.constants.ResponsesCodes;
 import com.pragma.plaza_service.application.handler.IOrderHandler;
 import com.pragma.plaza_service.infrastructure.util.constants.openapi.OrderControllerOpenApiConstants;
@@ -10,10 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/order")
@@ -44,6 +44,26 @@ public class OrderController {
     public ResponseEntity<Void> createOrder(@Valid @RequestBody OrderRequestCreateDto orderRequestCreateDto) {
         orderHandler.createOrder(orderRequestCreateDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Operation(
+            summary = OrderControllerOpenApiConstants.ORDER_CONTROLLER_GET_ALL_BY_STATUS_SUMMARY,
+            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_GET_ALL_BY_STATUS_DESCRIPTION,
+            responses = {
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.OK,
+                            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_GET_ALL_BY_STATUS_RESPONSE_200_DESCRIPTION
+                    ),
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.BAD_REQUEST,
+                            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_GET_ALL_BY_STATUS_RESPONSE_400_DESCRIPTION
+                    )
+            }
+    )
+    @GetMapping
+    public ResponseEntity<PaginationInfoResponse<OrderResponseDto>> getAllOrdersByStatus(@Valid @RequestBody OrderListDto orderListDto) {
+        PaginationInfoResponse<OrderResponseDto> orders = orderHandler.getOrdersByStatus(orderListDto);
+        return ResponseEntity.ok(orders);
     }
 
 }
