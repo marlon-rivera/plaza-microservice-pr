@@ -13,5 +13,12 @@ public class OrderUseCaseConstants {
     public static final String RESTAURANT_NOT_FOUND = "Restaurant not found";
     public static final String DISH_NOT_FOUND = "Dish not found";
     public static final String EMPLOYEE_NOT_BELONG_TO_RESTAURANT = "Employee does not belong to the restaurant";
+    public static final String ORDER_NOT_FOUND = "Order not found";
+    public static final String ORDER_NOT_PENDING = "Order is not pending";
+    public static final String ORDER_NOT_BELONG_TO_RESTAURANT = "Order does not belong to the restaurant";
+    public static final String ORDER_NOT_IN_PROGRESS = "Order is not in progress";
+    public static final String PHONE_NUMBER_NOT_FOUND = "Phone number not found";
+    public static final String ORDER_NOT_READY = "Order is not ready";
+    public static final String CODE_NOT_VALID = "Code is not valid";
 
 }

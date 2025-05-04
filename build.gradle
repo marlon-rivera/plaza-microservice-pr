@@ -85,6 +85,7 @@ def coverageExcludes = [
 		'**/infrastructure/jwt/**',
 		'**/infrastructure/out/jpa/entity/**',
 		'**/infrastructure/authenticate/**',
+		'**/infrastructure/configuration/**',
 		'**/PlazaServiceApplication.*'
 ]
 

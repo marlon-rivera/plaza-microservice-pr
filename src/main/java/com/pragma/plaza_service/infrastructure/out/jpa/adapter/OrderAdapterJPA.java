@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class OrderAdapterJPA implements IOrderPersistencePort {
@@ -53,6 +54,20 @@ public class OrderAdapterJPA implements IOrderPersistencePort {
                 pageResult.getTotalPages(),
                 pageResult.hasNext(),
                 pageResult.hasPrevious()
+        );
+    }
+
+    @Override
+    public Optional<Order> findById(Long id) {
+        return orderEntityMapper.toOptionalDomain(
+                orderRepository.findById(id)
+        );
+    }
+
+    @Override
+    public void updateOrder(Order order) {
+        orderRepository.save(
+                orderEntityMapper.toEntity(order)
         );
     }
 }

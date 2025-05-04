@@ -15,5 +15,17 @@ public class OrderControllerOpenApiConstants {
     public static final String ORDER_CONTROLLER_GET_ALL_BY_STATUS_DESCRIPTION = "Get all orders by status.";
     public static final String ORDER_CONTROLLER_GET_ALL_BY_STATUS_RESPONSE_200_DESCRIPTION = "Orders retrieved successfully.";
     public static final String ORDER_CONTROLLER_GET_ALL_BY_STATUS_RESPONSE_400_DESCRIPTION = "Bad request. Invalid input.";
+    public static final String ORDER_CONTROLLER_ASSIGN_ORDER_SUMMARY = "Assign an order to an employee";
+    public static final String ORDER_CONTROLLER_ASSIGN_ORDER_DESCRIPTION = "Assign an order to an employee.";
+    public static final String ORDER_CONTROLLER_ASSIGN_ORDER_RESPONSE_200_DESCRIPTION = "Order assigned successfully.";
+    public static final String ORDER_CONTROLLER_ASSIGN_ORDER_RESPONSE_400_DESCRIPTION = "Bad request. Invalid input.";
+    public static final String ORDER_CONTROLLER_FINISH_ORDER_SUMMARY = "Finish an order";
+    public static final String ORDER_CONTROLLER_FINISH_ORDER_DESCRIPTION = "Finish an order.";
+    public static final String ORDER_CONTROLLER_FINISH_ORDER_RESPONSE_200_DESCRIPTION = "Order finished successfully.";
+    public static final String ORDER_CONTROLLER_FINISH_ORDER_RESPONSE_400_DESCRIPTION = "Bad request. Invalid input.";
+    public static final String ORDER_CONTROLLER_DELIVER_ORDER_SUMMARY = "Deliver an order";
+    public static final String ORDER_CONTROLLER_DELIVER_ORDER_DESCRIPTION = "Deliver an order.";
+    public static final String ORDER_CONTROLLER_DELIVER_ORDER_RESPONSE_200_DESCRIPTION = "Order delivered successfully.";
+    public static final String ORDER_CONTROLLER_DELIVER_ORDER_RESPONSE_400_DESCRIPTION = "Bad request. Invalid input.";
 
 }

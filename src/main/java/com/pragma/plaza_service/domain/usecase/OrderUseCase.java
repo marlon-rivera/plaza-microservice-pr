@@ -3,6 +3,7 @@ package com.pragma.plaza_service.domain.usecase;
 import com.pragma.plaza_service.domain.api.IOrderServicePort;
 import com.pragma.plaza_service.domain.exception.InvalidDataException;
 import com.pragma.plaza_service.domain.exception.ResourceConflictException;
+import com.pragma.plaza_service.domain.exception.ResourceNotFoundException;
 import com.pragma.plaza_service.domain.model.*;
 import com.pragma.plaza_service.domain.spi.*;
 import com.pragma.plaza_service.domain.util.constants.OrderUseCaseConstants;
@@ -20,6 +21,7 @@ public class OrderUseCase implements IOrderServicePort {
     private final IDishPersistencePort dishPersistencePort;
     private final IAutthenticatePort autthenticatePort;
     private final IUserPersistencePort userPersistencePort;
+    private final INotificationPersistencePort notificationPersistencePort;
 
     @Override
     public void createOrder(Order order) {
@@ -38,6 +40,71 @@ public class OrderUseCase implements IOrderServicePort {
             throw new InvalidDataException(OrderUseCaseConstants.EMPLOYEE_NOT_BELONG_TO_RESTAURANT);
         }
         return orderPersistencePort.getOrdersByIdRestaurantAndStatus(restaurantId, status, page, size);
+    }
+
+    @Override
+    public void assignOrder(Long orderId) {
+        Optional<Order> orderOptional = orderPersistencePort.findById(orderId);
+        if (orderOptional.isEmpty()) {
+            throw new ResourceNotFoundException(OrderUseCaseConstants.ORDER_NOT_FOUND);
+        }
+        Order order = orderOptional.get();
+        if (!order.getStatus().equals(StatusOrderEnum.PENDING)) {
+            throw new InvalidDataException(OrderUseCaseConstants.ORDER_NOT_PENDING);
+        }
+        Long restaurantId = userPersistencePort.getIdRestaurantByIdEmployee();
+        if (!order.getRestaurant().getId().equals(restaurantId)) {
+            throw new InvalidDataException(OrderUseCaseConstants.ORDER_NOT_BELONG_TO_RESTAURANT);
+        }
+        Long employeeId = autthenticatePort.getCurrentUserId();
+        order.setStatus(StatusOrderEnum.IN_PROGRESS);
+        order.setIdEmployee(employeeId);
+        orderPersistencePort.updateOrder(order);
+    }
+
+    @Override
+    public void finishOrder(Long orderId) {
+        Optional<Order> orderOptional = orderPersistencePort.findById(orderId);
+        if (orderOptional.isEmpty()) {
+            throw new ResourceNotFoundException(OrderUseCaseConstants.ORDER_NOT_FOUND);
+        }
+        Long restaurantId = userPersistencePort.getIdRestaurantByIdEmployee();
+        Order order = orderOptional.get();
+        if (!order.getRestaurant().getId().equals(restaurantId)) {
+            throw new InvalidDataException(OrderUseCaseConstants.ORDER_NOT_BELONG_TO_RESTAURANT);
+        }
+        if (!order.getStatus().equals(StatusOrderEnum.IN_PROGRESS)) {
+            throw new InvalidDataException(OrderUseCaseConstants.ORDER_NOT_IN_PROGRESS);
+        }
+        String phoneNumber = userPersistencePort.getPhoneNumberByIdClient(order.getClientId());
+        if(phoneNumber == null) {
+            throw new InvalidDataException(OrderUseCaseConstants.PHONE_NUMBER_NOT_FOUND);
+        }
+        order.setStatus(StatusOrderEnum.READY);
+        notificationPersistencePort.sendNotification(orderId, phoneNumber);
+        orderPersistencePort.updateOrder(order);
+    }
+
+    @Override
+    public void deliverOrder(Long orderId, String code) {
+        Optional<Order> orderOptional = orderPersistencePort.findById(orderId);
+        if (orderOptional.isEmpty()) {
+            throw new ResourceNotFoundException(OrderUseCaseConstants.ORDER_NOT_FOUND);
+        }
+        Long restaurantId = userPersistencePort.getIdRestaurantByIdEmployee();
+        Order order = orderOptional.get();
+        if (!order.getRestaurant().getId().equals(restaurantId)) {
+            throw new InvalidDataException(OrderUseCaseConstants.ORDER_NOT_BELONG_TO_RESTAURANT);
+        }
+        if (!order.getStatus().equals(StatusOrderEnum.READY)) {
+            throw new InvalidDataException(OrderUseCaseConstants.ORDER_NOT_READY);
+        }
+        boolean validateCode = notificationPersistencePort.validateConfirmationCode(orderId, code);
+        if(!validateCode) {
+            throw new InvalidDataException(OrderUseCaseConstants.CODE_NOT_VALID);
+        }
+        order.setStatus(StatusOrderEnum.DELIVERED);
+         orderPersistencePort.updateOrder(order);
     }
 
     private void validateOrder(Order order) {
