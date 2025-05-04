@@ -86,4 +86,24 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(
+            summary = OrderControllerOpenApiConstants.ORDER_CONTROLLER_FINISH_ORDER_SUMMARY,
+            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_FINISH_ORDER_DESCRIPTION,
+            responses = {
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.OK,
+                            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_FINISH_ORDER_RESPONSE_200_DESCRIPTION
+                    ),
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.BAD_REQUEST,
+                            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_FINISH_ORDER_RESPONSE_400_DESCRIPTION
+                    )
+            }
+    )
+    @PutMapping("/finish/{orderId}")
+    public ResponseEntity<Void> finishOrder(@PathVariable Long orderId) {
+        orderHandler.finishOrder(orderId);
+        return ResponseEntity.ok().build();
+    }
+
 }

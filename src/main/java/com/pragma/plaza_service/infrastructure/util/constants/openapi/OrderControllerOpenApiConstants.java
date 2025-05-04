@@ -19,5 +19,9 @@ public class OrderControllerOpenApiConstants {
     public static final String ORDER_CONTROLLER_ASSIGN_ORDER_DESCRIPTION = "Assign an order to an employee.";
     public static final String ORDER_CONTROLLER_ASSIGN_ORDER_RESPONSE_200_DESCRIPTION = "Order assigned successfully.";
     public static final String ORDER_CONTROLLER_ASSIGN_ORDER_RESPONSE_400_DESCRIPTION = "Bad request. Invalid input.";
+    public static final String ORDER_CONTROLLER_FINISH_ORDER_SUMMARY = "Finish an order";
+    public static final String ORDER_CONTROLLER_FINISH_ORDER_DESCRIPTION = "Finish an order.";
+    public static final String ORDER_CONTROLLER_FINISH_ORDER_RESPONSE_200_DESCRIPTION = "Order finished successfully.";
+    public static final String ORDER_CONTROLLER_FINISH_ORDER_RESPONSE_400_DESCRIPTION = "Bad request. Invalid input.";
 
 }

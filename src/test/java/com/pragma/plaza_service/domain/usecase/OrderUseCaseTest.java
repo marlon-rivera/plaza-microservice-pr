@@ -38,6 +38,9 @@ class OrderUseCaseTest {
     @Mock
     private IUserPersistencePort userPersistencePort;
 
+    @Mock
+    private INotificationPersistencePort notificationPersistencePort;
+
     @InjectMocks
     private OrderUseCase orderUseCase;
 
@@ -327,4 +330,132 @@ class OrderUseCaseTest {
         verify(orderPersistencePort, never()).updateOrder(any());
     }
 
+    @Test
+    void finishOrder_Successfully() {
+        // Arrange
+        Long orderId = 1L;
+        Long employeeRestaurantId = 2L;
+        Long clientId = 3L;
+        String phoneNumber = "+1234567890";
+
+        Order order = new Order();
+        order.setStatus(StatusOrderEnum.IN_PROGRESS);
+        order.setClientId(clientId);
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(employeeRestaurantId);
+        order.setRestaurant(restaurant);
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+        when(userPersistencePort.getIdRestaurantByIdEmployee()).thenReturn(employeeRestaurantId);
+        when(userPersistencePort.getPhoneNumberByIdClient(clientId)).thenReturn(phoneNumber);
+        doNothing().when(notificationPersistencePort).sendNotification(orderId, phoneNumber);
+
+        // Act
+        orderUseCase.finishOrder(orderId);
+
+        // Assert
+        assertEquals(StatusOrderEnum.READY, order.getStatus());
+        verify(orderPersistencePort).findById(orderId);
+        verify(userPersistencePort).getIdRestaurantByIdEmployee();
+        verify(userPersistencePort).getPhoneNumberByIdClient(clientId);
+        verify(notificationPersistencePort).sendNotification(orderId, phoneNumber);
+        verify(orderPersistencePort).updateOrder(order);
+    }
+
+    @Test
+    void finishOrder_WithNonExistentOrder_ThrowsResourceNotFoundException() {
+        // Arrange
+        Long orderId = 1L;
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> orderUseCase.finishOrder(orderId));
+        assertEquals(OrderUseCaseConstants.ORDER_NOT_FOUND, exception.getMessage());
+        verify(orderPersistencePort).findById(orderId);
+        verify(userPersistencePort, never()).getIdRestaurantByIdEmployee();
+        verify(orderPersistencePort, never()).updateOrder(any());
+    }
+
+    @Test
+    void finishOrder_WithOrderFromDifferentRestaurant_ThrowsInvalidDataException() {
+        // Arrange
+        Long orderId = 1L;
+        Long employeeRestaurantId = 2L;
+        Long orderRestaurantId = 3L; // Diferente al restaurante del empleado
+
+        Order order = new Order();
+        order.setStatus(StatusOrderEnum.IN_PROGRESS);
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(orderRestaurantId);
+        order.setRestaurant(restaurant);
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+        when(userPersistencePort.getIdRestaurantByIdEmployee()).thenReturn(employeeRestaurantId);
+
+        // Act & Assert
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> orderUseCase.finishOrder(orderId));
+        assertEquals(OrderUseCaseConstants.ORDER_NOT_BELONG_TO_RESTAURANT, exception.getMessage());
+        verify(orderPersistencePort).findById(orderId);
+        verify(userPersistencePort).getIdRestaurantByIdEmployee();
+        verify(userPersistencePort, never()).getPhoneNumberByIdClient(any());
+        verify(notificationPersistencePort, never()).sendNotification(any(), any());
+        verify(orderPersistencePort, never()).updateOrder(any());
+    }
+
+    @Test
+    void finishOrder_WithOrderNotInProgress_ThrowsInvalidDataException() {
+        // Arrange
+        Long orderId = 1L;
+        Long restaurantId = 2L;
+
+        Order order = new Order();
+        order.setStatus(StatusOrderEnum.PENDING); // No está en progreso
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(restaurantId);
+        order.setRestaurant(restaurant);
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+        when(userPersistencePort.getIdRestaurantByIdEmployee()).thenReturn(restaurantId);
+
+        // Act & Assert
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> orderUseCase.finishOrder(orderId));
+        assertEquals(OrderUseCaseConstants.ORDER_NOT_IN_PROGRESS, exception.getMessage());
+        verify(orderPersistencePort).findById(orderId);
+        verify(userPersistencePort).getIdRestaurantByIdEmployee();
+        verify(userPersistencePort, never()).getPhoneNumberByIdClient(any());
+        verify(notificationPersistencePort, never()).sendNotification(any(), any());
+        verify(orderPersistencePort, never()).updateOrder(any());
+    }
+
+    @Test
+    void finishOrder_WithNullPhoneNumber_ThrowsInvalidDataException() {
+        // Arrange
+        Long orderId = 1L;
+        Long restaurantId = 2L;
+        Long clientId = 3L;
+
+        Order order = new Order();
+        order.setStatus(StatusOrderEnum.IN_PROGRESS);
+        order.setClientId(clientId);
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(restaurantId);
+        order.setRestaurant(restaurant);
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+        when(userPersistencePort.getIdRestaurantByIdEmployee()).thenReturn(restaurantId);
+        when(userPersistencePort.getPhoneNumberByIdClient(clientId)).thenReturn(null);
+
+        // Act & Assert
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> orderUseCase.finishOrder(orderId));
+        assertEquals(OrderUseCaseConstants.PHONE_NUMBER_NOT_FOUND, exception.getMessage());
+        verify(orderPersistencePort).findById(orderId);
+        verify(userPersistencePort).getIdRestaurantByIdEmployee();
+        verify(userPersistencePort).getPhoneNumberByIdClient(clientId);
+        verify(notificationPersistencePort, never()).sendNotification(any(), any());
+        verify(orderPersistencePort, never()).updateOrder(any());
+    }
 }

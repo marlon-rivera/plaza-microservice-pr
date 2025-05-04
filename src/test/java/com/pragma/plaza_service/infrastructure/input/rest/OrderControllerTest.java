@@ -76,4 +76,18 @@ class OrderControllerTest {
         assertNull(response.getBody());
     }
 
+    @Test
+    void finishOrder_ShouldReturnOkStatus() {
+        // Arrange
+        Long orderId = 1L;
+        doNothing().when(orderHandler).finishOrder(orderId);
+
+        // Act
+        ResponseEntity<Void> response = orderController.finishOrder(orderId);
+
+        // Assert
+        verify(orderHandler, times(1)).finishOrder(orderId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody());
+    }
 }

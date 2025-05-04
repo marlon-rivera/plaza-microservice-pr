@@ -23,4 +23,13 @@ public class UserAdapterFeign implements IUserPersistencePort {
             return null;
         }
     }
+
+    @Override
+    public String getPhoneNumberByIdClient(Long idClient){
+        try{
+            return userFeignClient.getPhoneNumberByIdClient(idClient);
+        }catch (FeignException e){
+            return null;
+        }
+    }
 }

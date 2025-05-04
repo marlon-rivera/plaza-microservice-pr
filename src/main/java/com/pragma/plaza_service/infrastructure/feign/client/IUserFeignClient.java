@@ -11,5 +11,6 @@ public interface IUserFeignClient {
     boolean isOwner(@PathVariable("id")  Long id);
     @GetMapping("/users/restaurant/employee")
     Long getIdRestaurantByIdEmployee();
-
+    @GetMapping("/users/client-phone/{id}")
+    String getPhoneNumberByIdClient(@PathVariable("id") Long idClient);
 }

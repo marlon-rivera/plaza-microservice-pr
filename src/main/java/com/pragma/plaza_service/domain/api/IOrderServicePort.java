@@ -8,5 +8,6 @@ public interface IOrderServicePort {
     void createOrder(Order order);
     PaginationInfo<Order> getOrdersByRestaurantIdAndStatus(String status, int page, int size);
     void assignOrder(Long orderId);
+    void finishOrder(Long orderId);
 
 }
