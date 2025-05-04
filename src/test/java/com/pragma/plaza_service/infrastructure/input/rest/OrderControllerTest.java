@@ -1,5 +1,6 @@
 package com.pragma.plaza_service.infrastructure.input.rest;
 
+import com.pragma.plaza_service.application.dto.request.DeliverOrderDto;
 import com.pragma.plaza_service.application.dto.request.OrderListDto;
 import com.pragma.plaza_service.application.dto.request.OrderRequestCreateDto;
 import com.pragma.plaza_service.application.dto.response.OrderResponseDto;
@@ -87,6 +88,23 @@ class OrderControllerTest {
 
         // Assert
         verify(orderHandler, times(1)).finishOrder(orderId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void deliverOrder_ShouldReturnOkStatus() {
+        // Arrange
+        Long orderId = 1L;
+        String code = "123456";
+        DeliverOrderDto deliverOrderDto = new DeliverOrderDto(orderId, code);
+        doNothing().when(orderHandler).deliverOrder(deliverOrderDto);
+
+        // Act
+        ResponseEntity<Void> response = orderController.deliverOrder(deliverOrderDto);
+
+        // Assert
+        verify(orderHandler, times(1)).deliverOrder(deliverOrderDto);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNull(response.getBody());
     }

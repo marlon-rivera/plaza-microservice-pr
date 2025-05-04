@@ -1,5 +1,6 @@
 package com.pragma.plaza_service.application.handler.impl;
 
+import com.pragma.plaza_service.application.dto.request.DeliverOrderDto;
 import com.pragma.plaza_service.application.dto.request.OrderListDto;
 import com.pragma.plaza_service.application.dto.request.OrderRequestCreateDto;
 import com.pragma.plaza_service.application.dto.response.OrderResponseDto;
@@ -40,5 +41,10 @@ public class OrderHandler implements IOrderHandler {
     @Override
     public void finishOrder(Long orderId) {
         orderServicePort.finishOrder(orderId);
+    }
+
+    @Override
+    public void deliverOrder(DeliverOrderDto deliverOrderDto) {
+        orderServicePort.deliverOrder(deliverOrderDto.getIdOrder(), deliverOrderDto.getCode());
     }
 }
