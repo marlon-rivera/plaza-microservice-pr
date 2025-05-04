@@ -10,4 +10,6 @@ public interface IOrderHandler {
     void createOrder(OrderRequestCreateDto orderRequestCreateDto);
     PaginationInfoResponse<OrderResponseDto> getOrdersByStatus(OrderListDto orderListDto);
     void assignOrder(Long orderId);
+    void finishOrder(Long orderId);
+
 }

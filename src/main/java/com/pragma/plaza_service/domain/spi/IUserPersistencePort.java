@@ -4,5 +4,5 @@ public interface IUserPersistencePort {
 
     boolean isOwner(Long ownerId);
     Long getIdRestaurantByIdEmployee();
-
+    String getPhoneNumberByIdClient(Long idClient);
 }

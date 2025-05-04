@@ -66,4 +66,27 @@ class UserAdapterFeignTest {
         verify(userFeignClient).getIdRestaurantByIdEmployee();
     }
 
+    @Test
+    void getPhoneNumberByIdClient_shouldReturnPhoneNumber_whenSuccessful() {
+        Long clientId = 3L;
+        String expectedPhoneNumber = "+1234567890";
+        when(userFeignClient.getPhoneNumberByIdClient(clientId)).thenReturn(expectedPhoneNumber);
+
+        String result = userAdapterFeign.getPhoneNumberByIdClient(clientId);
+
+        assertEquals(expectedPhoneNumber, result);
+        verify(userFeignClient).getPhoneNumberByIdClient(clientId);
+    }
+
+    @Test
+    void getPhoneNumberByIdClient_shouldReturnNull_whenFeignExceptionOccurs() {
+        Long clientId = 4L;
+        when(userFeignClient.getPhoneNumberByIdClient(clientId)).thenThrow(FeignException.class);
+
+        String result = userAdapterFeign.getPhoneNumberByIdClient(clientId);
+
+        assertNull(result);
+        verify(userFeignClient).getPhoneNumberByIdClient(clientId);
+    }
+
 }
