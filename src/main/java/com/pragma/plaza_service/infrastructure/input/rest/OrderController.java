@@ -1,5 +1,6 @@
 package com.pragma.plaza_service.infrastructure.input.rest;
 
+import com.pragma.plaza_service.application.dto.request.DeliverOrderDto;
 import com.pragma.plaza_service.application.dto.request.OrderListDto;
 import com.pragma.plaza_service.application.dto.request.OrderRequestCreateDto;
 import com.pragma.plaza_service.application.dto.response.OrderResponseDto;
@@ -103,6 +104,46 @@ public class OrderController {
     @PutMapping("/finish/{orderId}")
     public ResponseEntity<Void> finishOrder(@PathVariable Long orderId) {
         orderHandler.finishOrder(orderId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = OrderControllerOpenApiConstants.ORDER_CONTROLLER_DELIVER_ORDER_SUMMARY,
+            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_DELIVER_ORDER_DESCRIPTION,
+            responses = {
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.OK,
+                            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_DELIVER_ORDER_RESPONSE_200_DESCRIPTION
+                    ),
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.BAD_REQUEST,
+                            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_DELIVER_ORDER_RESPONSE_400_DESCRIPTION
+                    )
+            }
+    )
+    @PutMapping("/deliver")
+    public ResponseEntity<Void> deliverOrder(@Valid  @RequestBody DeliverOrderDto deliverOrderDto) {
+        orderHandler.deliverOrder(deliverOrderDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = OrderControllerOpenApiConstants.ORDER_CONTROLLER_CANCEL_ORDER_SUMMARY,
+            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_CANCEL_ORDER_DESCRIPTION,
+            responses = {
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.OK,
+                            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_CANCEL_ORDER_RESPONSE_200_DESCRIPTION
+                    ),
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.BAD_REQUEST,
+                            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_CANCEL_ORDER_RESPONSE_400_DESCRIPTION
+                    )
+            }
+    )
+    @PostMapping("/cancel/{orderId}")
+    public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId) {
+        orderHandler.cancelOrder(orderId);
         return ResponseEntity.ok().build();
     }
 

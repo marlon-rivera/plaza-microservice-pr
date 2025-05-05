@@ -85,6 +85,51 @@ public class OrderUseCase implements IOrderServicePort {
         orderPersistencePort.updateOrder(order);
     }
 
+    @Override
+    public void deliverOrder(Long orderId, String code) {
+        Optional<Order> orderOptional = orderPersistencePort.findById(orderId);
+        if (orderOptional.isEmpty()) {
+            throw new ResourceNotFoundException(OrderUseCaseConstants.ORDER_NOT_FOUND);
+        }
+        Long restaurantId = userPersistencePort.getIdRestaurantByIdEmployee();
+        Order order = orderOptional.get();
+        if (!order.getRestaurant().getId().equals(restaurantId)) {
+            throw new InvalidDataException(OrderUseCaseConstants.ORDER_NOT_BELONG_TO_RESTAURANT);
+        }
+        if (!order.getStatus().equals(StatusOrderEnum.READY)) {
+            throw new InvalidDataException(OrderUseCaseConstants.ORDER_NOT_READY);
+        }
+        boolean validateCode = notificationPersistencePort.validateConfirmationCode(orderId, code);
+        if(!validateCode) {
+            throw new InvalidDataException(OrderUseCaseConstants.CODE_NOT_VALID);
+        }
+        order.setStatus(StatusOrderEnum.DELIVERED);
+         orderPersistencePort.updateOrder(order);
+    }
+
+    @Override
+    public void cancelOrder(Long orderId) {
+        Optional<Order> orderOptional = orderPersistencePort.findById(orderId);
+        if (orderOptional.isEmpty()) {
+            throw new ResourceNotFoundException(OrderUseCaseConstants.ORDER_NOT_FOUND);
+        }
+        Long clientId = autthenticatePort.getCurrentUserId();
+        Order order = orderOptional.get();
+        if (!order.getClientId().equals(clientId)) {
+            throw new InvalidDataException(OrderUseCaseConstants.ORDER_NOT_BELONG_TO_CLIENT);
+        }
+        if(!order.getStatus().equals(StatusOrderEnum.PENDING)){
+            String phoneNumber = userPersistencePort.getPhoneNumberByIdClient(order.getClientId());
+            if(!notificationPersistencePort.sendNotificationCancelOrder(phoneNumber)){
+                throw new ResourceConflictException(OrderUseCaseConstants.CANT_SEND_NOTIFICATION);
+            }else {
+                return;
+            }
+        }
+        order.setStatus(StatusOrderEnum.CANCELED);
+        orderPersistencePort.updateOrder(order);
+    }
+
     private void validateOrder(Order order) {
         if (order.getOrderDishes() == null || order.getOrderDishes().isEmpty()) {
             throw new InvalidDataException(OrderUseCaseConstants.ORDER_DISHES_CANNOT_BE_NULL_OR_EMPTY);

@@ -18,5 +18,9 @@ public class OrderUseCaseConstants {
     public static final String ORDER_NOT_BELONG_TO_RESTAURANT = "Order does not belong to the restaurant";
     public static final String ORDER_NOT_IN_PROGRESS = "Order is not in progress";
     public static final String PHONE_NUMBER_NOT_FOUND = "Phone number not found";
+    public static final String ORDER_NOT_READY = "Order is not ready";
+    public static final String CODE_NOT_VALID = "Code is not valid";
+    public static final String CANT_SEND_NOTIFICATION = "Can't send notification";
+    public static final String ORDER_NOT_BELONG_TO_CLIENT = "Order does not belong to the client";
 
 }

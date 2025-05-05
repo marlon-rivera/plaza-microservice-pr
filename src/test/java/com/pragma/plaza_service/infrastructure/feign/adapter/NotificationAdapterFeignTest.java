@@ -2,6 +2,7 @@ package com.pragma.plaza_service.infrastructure.feign.adapter;
 
 import com.pragma.plaza_service.infrastructure.feign.client.INotificationFeignClient;
 import com.pragma.plaza_service.infrastructure.feign.request.SendConfirmationDto;
+import com.pragma.plaza_service.infrastructure.feign.request.ValidateConfirmationCodeDto;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,66 @@ class NotificationAdapterFeignTest {
         assertThrows(FeignException.class, () ->
                 notificationAdapterFeign.sendNotification(orderId, phoneNumber)
         );
+    }
+
+    @Test
+    void validateConfirmationCode_ShouldReturnTrueWhenValidationSucceeds() {
+        // Arrange
+        Long orderId = 1L;
+        String code = "123456";
+        ValidateConfirmationCodeDto dto = new ValidateConfirmationCodeDto(orderId, code);
+        when(notificationFeignClient.validateConfirmationCode(dto)).thenReturn(true);
+
+        // Act
+        boolean result = notificationAdapterFeign.validateConfirmationCode(orderId, code);
+
+        // Assert
+        assertTrue(result);
+        verify(notificationFeignClient, times(1)).validateConfirmationCode(dto);
+    }
+
+    @Test
+    void validateConfirmationCode_ShouldReturnFalseWhenFeignExceptionOccurs() {
+        // Arrange
+        Long orderId = 1L;
+        String code = "123456";
+        ValidateConfirmationCodeDto dto = new ValidateConfirmationCodeDto(orderId, code);
+        when(notificationFeignClient.validateConfirmationCode(dto)).thenThrow(FeignException.class);
+
+        // Act
+        boolean result = notificationAdapterFeign.validateConfirmationCode(orderId, code);
+
+        // Assert
+        assertFalse(result);
+        verify(notificationFeignClient, times(1)).validateConfirmationCode(dto);
+    }
+
+    @Test
+    void sendNotificationCancelOrder_ShouldReturnTrueWhenNotificationSent() {
+        // Arrange
+        String phoneNumber = "+1234567890";
+        doNothing().when(notificationFeignClient).sendNotificationCancelOrder(phoneNumber);
+
+        // Act
+        boolean result = notificationAdapterFeign.sendNotificationCancelOrder(phoneNumber);
+
+        // Assert
+        assertTrue(result);
+        verify(notificationFeignClient, times(1)).sendNotificationCancelOrder(phoneNumber);
+    }
+
+    @Test
+    void sendNotificationCancelOrder_ShouldReturnFalseWhenFeignExceptionOccurs() {
+        // Arrange
+        String phoneNumber = "+1234567890";
+        doThrow(FeignException.class).when(notificationFeignClient).sendNotificationCancelOrder(phoneNumber);
+
+        // Act
+        boolean result = notificationAdapterFeign.sendNotificationCancelOrder(phoneNumber);
+
+        // Assert
+        assertFalse(result);
+        verify(notificationFeignClient, times(1)).sendNotificationCancelOrder(phoneNumber);
     }
 
 }
