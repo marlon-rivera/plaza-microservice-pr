@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface IOrderRepository extends JpaRepository<OrderEntity, Long> {
 
-    @Query("SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END FROM OrderEntity o WHERE o.clientId = :clientId AND o.status NOT IN ('DELIVERED', 'CANCELLED')")
+    @Query("SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END FROM OrderEntity o WHERE o.clientId = :clientId AND o.status NOT IN ('DELIVERED', 'CANCELED')")
     boolean existsOrderInProgressByClientId(Long clientId);
 
     Page<OrderEntity> findAllByRestaurantEntityIdAndStatus(Long restaurantId, String status, Pageable pageable);

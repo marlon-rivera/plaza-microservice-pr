@@ -3,6 +3,8 @@ package com.pragma.plaza_service.infrastructure.out.jpa.adapter;
 import com.pragma.plaza_service.domain.model.Order;
 import com.pragma.plaza_service.domain.model.OrderDish;
 import com.pragma.plaza_service.domain.model.PaginationInfo;
+import com.pragma.plaza_service.domain.model.StatusOrderEnum;
+import com.pragma.plaza_service.domain.spi.ITraceabilityPersistencePort;
 import com.pragma.plaza_service.infrastructure.out.jpa.entity.OrderDishEntity;
 import com.pragma.plaza_service.infrastructure.out.jpa.entity.OrderEntity;
 import com.pragma.plaza_service.infrastructure.out.jpa.mapper.IOrderEntityMapper;
@@ -36,50 +38,73 @@ class OrderAdapterJPATest {
     @Mock
     private IOrderDishRepository orderDishRepository;
 
+    @Mock
+    private ITraceabilityPersistencePort traceabilityPersistencePort;
+
     @InjectMocks
     private OrderAdapterJPA orderAdapterJPA;
 
-@Test
-void saveOrder_ShouldSaveOrderAndOrderDishes() {
-    // Arrange
-    Order order = new Order();
-    List<OrderDish> orderDishes = new ArrayList<>();
-    OrderDish orderDish1 = new OrderDish();
-    OrderDish orderDish2 = new OrderDish();
-    orderDishes.add(orderDish1);
-    orderDishes.add(orderDish2);
-    order.setOrderDishes(orderDishes);
+    @Test
+    void saveOrder_ShouldSaveOrderAndOrderDishes() {
+        // Arrange
+        Order order = new Order();
+        // Configuramos los datos necesarios para traceability
+        order.setId(1L);
+        order.setClientId(2L);
+        com.pragma.plaza_service.domain.model.Restaurant restaurant = new com.pragma.plaza_service.domain.model.Restaurant();
+        restaurant.setId(3L);
+        order.setRestaurant(restaurant);
+        order.setStatus(com.pragma.plaza_service.domain.model.StatusOrderEnum.PENDING);
+        order.setIdEmployee(null);
 
-    OrderEntity orderEntity = new OrderEntity();
-    OrderDishEntity orderDishEntity1 = new OrderDishEntity();
-    OrderDishEntity orderDishEntity2 = new OrderDishEntity();
-    List<OrderDishEntity> orderDishEntities = List.of(orderDishEntity1, orderDishEntity2);
+        List<OrderDish> orderDishes = new ArrayList<>();
+        OrderDish orderDish1 = new OrderDish();
+        OrderDish orderDish2 = new OrderDish();
+        orderDishes.add(orderDish1);
+        orderDishes.add(orderDish2);
+        order.setOrderDishes(orderDishes);
 
-    when(orderEntityMapper.toEntity(order)).thenReturn(orderEntity);
-    when(orderRepository.save(orderEntity)).thenReturn(orderEntity);
-    when(orderEntityMapper.toOrderDishEntity(orderDish1)).thenReturn(orderDishEntity1);
-    when(orderEntityMapper.toOrderDishEntity(orderDish2)).thenReturn(orderDishEntity2);
+        OrderEntity orderEntity = new OrderEntity();
+        // Configuramos el ID para que sea devuelto en el mock
+        orderEntity.setId(1L);
+        OrderDishEntity orderDishEntity1 = new OrderDishEntity();
+        OrderDishEntity orderDishEntity2 = new OrderDishEntity();
+        List<OrderDishEntity> orderDishEntities = List.of(orderDishEntity1, orderDishEntity2);
 
-    // Capturar los argumentos pasados a saveAll para verificar después
-    ArgumentCaptor<List<OrderDishEntity>> orderDishCaptor = ArgumentCaptor.forClass(List.class);
+        when(orderEntityMapper.toEntity(order)).thenReturn(orderEntity);
+        when(orderRepository.save(orderEntity)).thenReturn(orderEntity);
+        when(orderEntityMapper.toOrderDishEntity(orderDish1)).thenReturn(orderDishEntity1);
+        when(orderEntityMapper.toOrderDishEntity(orderDish2)).thenReturn(orderDishEntity2);
 
-    // Act
-    orderAdapterJPA.saveOrder(order);
+        // Capturar los argumentos pasados a saveAll para verificar después
+        ArgumentCaptor<List<OrderDishEntity>> orderDishCaptor = ArgumentCaptor.forClass(List.class);
 
-    // Assert
-    verify(orderRepository).save(orderEntity);
-    verify(orderDishRepository).saveAll(orderDishCaptor.capture());
-    verify(orderEntityMapper, times(2)).toOrderDishEntity(any(OrderDish.class));
+        // Act
+        orderAdapterJPA.saveOrder(order);
 
-    // Verificamos que cada OrderDishEntity tenga la referencia correcta
-    List<OrderDishEntity> capturedOrderDishes = orderDishCaptor.getValue();
-    assertNotNull(capturedOrderDishes);
-    assertFalse(capturedOrderDishes.isEmpty());
+        // Assert
+        verify(orderRepository).save(orderEntity);
+        verify(orderDishRepository).saveAll(orderDishCaptor.capture());
+        verify(orderEntityMapper, times(2)).toOrderDishEntity(any(OrderDish.class));
 
-    for (OrderDishEntity entity : capturedOrderDishes) {
-        assertEquals(orderEntity, entity.getOrderEntity());
+        // Verificamos la llamada a traceabilityPersistencePort
+        verify(traceabilityPersistencePort).saveTraceability(
+                orderEntity.getId(),
+                order.getClientId(),
+                order.getRestaurant().getId(),
+                order.getIdEmployee(),
+                order.getStatus().name()
+        );
+
+        // Verificamos que cada OrderDishEntity tenga la referencia correcta
+        List<OrderDishEntity> capturedOrderDishes = orderDishCaptor.getValue();
+        assertNotNull(capturedOrderDishes);
+        assertFalse(capturedOrderDishes.isEmpty());
+
+        for (OrderDishEntity entity : capturedOrderDishes) {
+            assertEquals(orderEntity, entity.getOrderEntity());
+        }
     }
-}
 
     @Test
     void existsOrderInProgressByClientId_ShouldReturnTrue_WhenOrderExists() {
@@ -197,9 +222,22 @@ void saveOrder_ShouldSaveOrderAndOrderDishes() {
     void updateOrder_ShouldUpdateExistingOrder() {
         // Arrange
         Order order = new Order();
+        order.setId(1L);
+        order.setClientId(2L);
+        order.setRestaurant(new com.pragma.plaza_service.domain.model.Restaurant());
+        order.getRestaurant().setId(3L);
+        order.setStatus(com.pragma.plaza_service.domain.model.StatusOrderEnum.DELIVERED);
+        order.setIdEmployee(4L);
+
         OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setId(1L);
+        orderEntity.setClientId(2L);
+        orderEntity.setRestaurantEntity(new com.pragma.plaza_service.infrastructure.out.jpa.entity.RestaurantEntity());
+        orderEntity.getRestaurantEntity().setId(3L);
+        orderEntity.setStatus(StatusOrderEnum.DELIVERED.name());
 
         when(orderEntityMapper.toEntity(order)).thenReturn(orderEntity);
+        when(orderRepository.save(orderEntity)).thenReturn(orderEntity);
 
         // Act
         orderAdapterJPA.updateOrder(order);
@@ -207,6 +245,13 @@ void saveOrder_ShouldSaveOrderAndOrderDishes() {
         // Assert
         verify(orderEntityMapper).toEntity(order);
         verify(orderRepository).save(orderEntity);
+        verify(traceabilityPersistencePort).saveTraceability(
+                orderEntity.getId(),
+                orderEntity.getClientId(),
+                orderEntity.getRestaurantEntity().getId(),
+                order.getIdEmployee(),
+                orderEntity.getStatus()
+        );
     }
 
 }

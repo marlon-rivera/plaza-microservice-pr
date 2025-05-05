@@ -80,6 +80,8 @@ public class OrderUseCase implements IOrderServicePort {
         if(phoneNumber == null) {
             throw new InvalidDataException(OrderUseCaseConstants.PHONE_NUMBER_NOT_FOUND);
         }
+        Long idEmployee = autthenticatePort.getCurrentUserId();
+        order.setIdEmployee(idEmployee);
         order.setStatus(StatusOrderEnum.READY);
         notificationPersistencePort.sendNotification(orderId, phoneNumber);
         orderPersistencePort.updateOrder(order);
@@ -104,7 +106,9 @@ public class OrderUseCase implements IOrderServicePort {
             throw new InvalidDataException(OrderUseCaseConstants.CODE_NOT_VALID);
         }
         order.setStatus(StatusOrderEnum.DELIVERED);
-         orderPersistencePort.updateOrder(order);
+        Long idEmployee = autthenticatePort.getCurrentUserId();
+        order.setIdEmployee(idEmployee);
+        orderPersistencePort.updateOrder(order);
     }
 
     @Override
