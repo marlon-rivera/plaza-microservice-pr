@@ -127,4 +127,24 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(
+            summary = OrderControllerOpenApiConstants.ORDER_CONTROLLER_CANCEL_ORDER_SUMMARY,
+            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_CANCEL_ORDER_DESCRIPTION,
+            responses = {
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.OK,
+                            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_CANCEL_ORDER_RESPONSE_200_DESCRIPTION
+                    ),
+                    @ApiResponse(
+                            responseCode = ResponsesCodes.BAD_REQUEST,
+                            description = OrderControllerOpenApiConstants.ORDER_CONTROLLER_CANCEL_ORDER_RESPONSE_400_DESCRIPTION
+                    )
+            }
+    )
+    @PostMapping("/cancel/{orderId}")
+    public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId) {
+        orderHandler.cancelOrder(orderId);
+        return ResponseEntity.ok().build();
+    }
+
 }

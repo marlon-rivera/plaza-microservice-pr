@@ -108,4 +108,19 @@ class OrderControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNull(response.getBody());
     }
+
+    @Test
+    void cancelOrder_ShouldReturnOkStatus() {
+        // Arrange
+        Long orderId = 1L;
+        doNothing().when(orderHandler).cancelOrder(orderId);
+
+        // Act
+        ResponseEntity<Void> response = orderController.cancelOrder(orderId);
+
+        // Assert
+        verify(orderHandler, times(1)).cancelOrder(orderId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody());
+    }
 }
