@@ -16,8 +16,10 @@ import com.pragma.plaza_service.domain.usecase.OrderUseCase;
 import com.pragma.plaza_service.domain.usecase.RestaurantUseCase;
 import com.pragma.plaza_service.infrastructure.authenticate.AuthenticateAdapter;
 import com.pragma.plaza_service.infrastructure.feign.adapter.NotificationAdapterFeign;
+import com.pragma.plaza_service.infrastructure.feign.adapter.TraceabilityAdapterFeign;
 import com.pragma.plaza_service.infrastructure.feign.adapter.UserAdapterFeign;
 import com.pragma.plaza_service.infrastructure.feign.client.INotificationFeignClient;
+import com.pragma.plaza_service.infrastructure.feign.client.ITraceabilityFeignClient;
 import com.pragma.plaza_service.infrastructure.feign.client.IUserFeignClient;
 import com.pragma.plaza_service.infrastructure.out.jpa.adapter.DishAdapterJPA;
 import com.pragma.plaza_service.infrastructure.out.jpa.adapter.DishCategoryAdapterJPA;
@@ -53,6 +55,7 @@ public class BeanConfiguration {
     private final IOrderResponseMapper orderResponseMapper;
     private final IOrderDishRepository orderDishRepository;
     private final INotificationFeignClient notificationFeignClient;
+    private final ITraceabilityFeignClient traceabilityFeignClient;
 
     @Bean
     public IRestaurantPersistencePort restaurantPersistencePort(){
@@ -101,7 +104,7 @@ public class BeanConfiguration {
 
     @Bean
     public IOrderPersistencePort orderPersistencePort(){
-        return new OrderAdapterJPA(orderRepository, orderEntityMapper, orderDishRepository);
+        return new OrderAdapterJPA(orderRepository, orderEntityMapper, orderDishRepository, traceabilityPersistencePort());
     }
 
     @Bean
@@ -119,5 +122,10 @@ public class BeanConfiguration {
     @Bean
     public INotificationPersistencePort notificationPersistencePort(){
         return new NotificationAdapterFeign(notificationFeignClient);
+    }
+
+    @Bean
+    public ITraceabilityPersistencePort traceabilityPersistencePort(){
+        return new TraceabilityAdapterFeign(traceabilityFeignClient);
     }
 }
