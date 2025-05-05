@@ -584,4 +584,122 @@ class OrderUseCaseTest {
         verify(notificationPersistencePort).validateConfirmationCode(orderId, code);
         verify(orderPersistencePort, never()).updateOrder(any());
     }
+
+    @Test
+    void cancelOrder_Successfully_WhenStatusIsPending() {
+        // Arrange
+        Long orderId = 1L;
+        Long clientId = 3L;
+
+        Order order = new Order();
+        order.setClientId(clientId);
+        order.setStatus(StatusOrderEnum.PENDING);
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+        when(autthenticatePort.getCurrentUserId()).thenReturn(clientId);
+
+        // Act
+        orderUseCase.cancelOrder(orderId);
+
+        // Assert
+        assertEquals(StatusOrderEnum.CANCELED, order.getStatus());
+        verify(orderPersistencePort).findById(orderId);
+        verify(autthenticatePort).getCurrentUserId();
+        verify(orderPersistencePort).updateOrder(order);
+        verify(userPersistencePort, never()).getPhoneNumberByIdClient(any());
+        verify(notificationPersistencePort, never()).sendNotificationCancelOrder(any());
+    }
+
+    @Test
+    void cancelOrder_Successfully_WhenStatusIsNotPendingAndNotificationSent() {
+        // Arrange
+        Long orderId = 1L;
+        Long clientId = 3L;
+        String phoneNumber = "+1234567890";
+
+        Order order = new Order();
+        order.setClientId(clientId);
+        order.setStatus(StatusOrderEnum.IN_PROGRESS); // No es PENDING
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+        when(autthenticatePort.getCurrentUserId()).thenReturn(clientId);
+        when(userPersistencePort.getPhoneNumberByIdClient(clientId)).thenReturn(phoneNumber);
+        when(notificationPersistencePort.sendNotificationCancelOrder(phoneNumber)).thenReturn(true);
+
+        // Act
+        orderUseCase.cancelOrder(orderId);
+
+        // Assert
+        verify(orderPersistencePort).findById(orderId);
+        verify(autthenticatePort).getCurrentUserId();
+        verify(userPersistencePort).getPhoneNumberByIdClient(clientId);
+        verify(notificationPersistencePort).sendNotificationCancelOrder(phoneNumber);
+        verify(orderPersistencePort, never()).updateOrder(any()); // No se actualiza el estado
+    }
+
+    @Test
+    void cancelOrder_WithNonExistentOrder_ThrowsResourceNotFoundException() {
+        // Arrange
+        Long orderId = 1L;
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> orderUseCase.cancelOrder(orderId));
+        assertEquals(OrderUseCaseConstants.ORDER_NOT_FOUND, exception.getMessage());
+        verify(orderPersistencePort).findById(orderId);
+        verify(autthenticatePort, never()).getCurrentUserId();
+        verify(orderPersistencePort, never()).updateOrder(any());
+    }
+
+    @Test
+    void cancelOrder_WithOrderNotBelongingToClient_ThrowsInvalidDataException() {
+        // Arrange
+        Long orderId = 1L;
+        Long clientId = 3L;
+        Long differentClientId = 4L; // No coincide con el cliente de la orden
+
+        Order order = new Order();
+        order.setClientId(differentClientId);
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+        when(autthenticatePort.getCurrentUserId()).thenReturn(clientId);
+
+        // Act & Assert
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> orderUseCase.cancelOrder(orderId));
+        assertEquals(OrderUseCaseConstants.ORDER_NOT_BELONG_TO_CLIENT, exception.getMessage());
+        verify(orderPersistencePort).findById(orderId);
+        verify(autthenticatePort).getCurrentUserId();
+        verify(orderPersistencePort, never()).updateOrder(any());
+    }
+
+    @Test
+    void cancelOrder_WithNotificationFailure_ThrowsResourceConflictException() {
+        // Arrange
+        Long orderId = 1L;
+        Long clientId = 3L;
+        String phoneNumber = "+1234567890";
+
+        Order order = new Order();
+        order.setClientId(clientId);
+        order.setStatus(StatusOrderEnum.IN_PROGRESS); // No es PENDING
+
+        when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
+        when(autthenticatePort.getCurrentUserId()).thenReturn(clientId);
+        when(userPersistencePort.getPhoneNumberByIdClient(clientId)).thenReturn(phoneNumber);
+        when(notificationPersistencePort.sendNotificationCancelOrder(phoneNumber)).thenReturn(false);
+
+        // Act & Assert
+        ResourceConflictException exception = assertThrows(ResourceConflictException.class,
+                () -> orderUseCase.cancelOrder(orderId));
+        assertEquals(OrderUseCaseConstants.CANT_SEND_NOTIFICATION, exception.getMessage());
+        verify(orderPersistencePort).findById(orderId);
+        verify(autthenticatePort).getCurrentUserId();
+        verify(userPersistencePort).getPhoneNumberByIdClient(clientId);
+        verify(notificationPersistencePort).sendNotificationCancelOrder(phoneNumber);
+        verify(orderPersistencePort, never()).updateOrder(any());
+    }
+
 }

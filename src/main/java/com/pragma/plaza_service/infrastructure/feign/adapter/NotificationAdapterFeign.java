@@ -29,4 +29,14 @@ public class NotificationAdapterFeign implements INotificationPersistencePort {
             return false;
         }
     }
+
+    @Override
+    public boolean sendNotificationCancelOrder(String phoneNumber) {
+        try {
+            notificationFeignClient.sendNotificationCancelOrder(phoneNumber);
+            return true;
+        } catch (FeignException e) {
+            return false;
+        }
+    }
 }

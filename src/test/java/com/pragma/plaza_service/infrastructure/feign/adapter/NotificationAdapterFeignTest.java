@@ -90,4 +90,32 @@ class NotificationAdapterFeignTest {
         verify(notificationFeignClient, times(1)).validateConfirmationCode(dto);
     }
 
+    @Test
+    void sendNotificationCancelOrder_ShouldReturnTrueWhenNotificationSent() {
+        // Arrange
+        String phoneNumber = "+1234567890";
+        doNothing().when(notificationFeignClient).sendNotificationCancelOrder(phoneNumber);
+
+        // Act
+        boolean result = notificationAdapterFeign.sendNotificationCancelOrder(phoneNumber);
+
+        // Assert
+        assertTrue(result);
+        verify(notificationFeignClient, times(1)).sendNotificationCancelOrder(phoneNumber);
+    }
+
+    @Test
+    void sendNotificationCancelOrder_ShouldReturnFalseWhenFeignExceptionOccurs() {
+        // Arrange
+        String phoneNumber = "+1234567890";
+        doThrow(FeignException.class).when(notificationFeignClient).sendNotificationCancelOrder(phoneNumber);
+
+        // Act
+        boolean result = notificationAdapterFeign.sendNotificationCancelOrder(phoneNumber);
+
+        // Assert
+        assertFalse(result);
+        verify(notificationFeignClient, times(1)).sendNotificationCancelOrder(phoneNumber);
+    }
+
 }

@@ -13,5 +13,6 @@ public interface IOrderHandler {
     void assignOrder(Long orderId);
     void finishOrder(Long orderId);
     void deliverOrder(DeliverOrderDto deliverOrderDto);
+    void cancelOrder(Long idOrder);
 
 }
