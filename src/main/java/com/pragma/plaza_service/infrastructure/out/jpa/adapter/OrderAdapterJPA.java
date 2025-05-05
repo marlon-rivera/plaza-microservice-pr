@@ -4,6 +4,7 @@ import com.pragma.plaza_service.domain.model.Order;
 import com.pragma.plaza_service.domain.model.OrderDish;
 import com.pragma.plaza_service.domain.model.PaginationInfo;
 import com.pragma.plaza_service.domain.spi.IOrderPersistencePort;
+import com.pragma.plaza_service.domain.spi.ITraceabilityPersistencePort;
 import com.pragma.plaza_service.infrastructure.out.jpa.entity.OrderDishEntity;
 import com.pragma.plaza_service.infrastructure.out.jpa.entity.OrderEntity;
 import com.pragma.plaza_service.infrastructure.out.jpa.mapper.IOrderEntityMapper;
@@ -23,6 +24,7 @@ public class OrderAdapterJPA implements IOrderPersistencePort {
     private final IOrderRepository orderRepository;
     private final IOrderEntityMapper orderEntityMapper;
     private final IOrderDishRepository orderDishRepository;
+    private final ITraceabilityPersistencePort traceabilityPersistencePort;
 
     @Override
     public void saveOrder(Order order) {
@@ -34,6 +36,7 @@ public class OrderAdapterJPA implements IOrderPersistencePort {
             orderDishEntities.add(orderDishEntity);
         }
         orderDishRepository.saveAll(orderDishEntities);
+        traceabilityPersistencePort.saveTraceability(orderEntity.getId(), order.getClientId(), order.getRestaurant().getId(), null, order.getStatus().name());
     }
 
     @Override
@@ -66,8 +69,9 @@ public class OrderAdapterJPA implements IOrderPersistencePort {
 
     @Override
     public void updateOrder(Order order) {
-        orderRepository.save(
+        OrderEntity orderEntity = orderRepository.save(
                 orderEntityMapper.toEntity(order)
         );
+        traceabilityPersistencePort.saveTraceability(orderEntity.getId(), orderEntity.getClientId(), orderEntity.getRestaurantEntity().getId(), order.getIdEmployee(), orderEntity.getStatus());
     }
 }
